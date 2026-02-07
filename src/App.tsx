@@ -4,6 +4,16 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Donors from "./pages/Donors";
+import Beneficiaries from "./pages/Beneficiaries";
+import Donations from "./pages/Donations";
+import Projects from "./pages/Projects";
+import Expenses from "./pages/Expenses";
+import Volunteers from "./pages/Volunteers";
+import Compliance from "./pages/Compliance";
+import Reports from "./pages/Reports";
+import Documents from "./pages/Documents";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -16,7 +26,16 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/donors" element={<Donors />} />
+          <Route path="/beneficiaries" element={<Beneficiaries />} />
+          <Route path="/donations" element={<Donations />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/volunteers" element={<Volunteers />} />
+          <Route path="/compliance" element={<Compliance />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/documents" element={<Documents />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
