@@ -15,13 +15,27 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  DollarSign,
+  PoundSterling,
+  Coins,
 } from "lucide-react";
+import { useRules } from "@/contexts/RuleContext";
+import { getMenuItemsForRole } from "@/lib/data/roles";
 
-const menuItems = [
+const getCurrencyIcon = (currencyCode?: string) => {
+  switch (currencyCode) {
+    case 'INR': return IndianRupee;
+    case 'USD': return DollarSign;
+    case 'GBP': return PoundSterling;
+    default: return Coins;
+  }
+};
+
+const allMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: Users, label: "Donors", path: "/donors" },
   { icon: Heart, label: "Beneficiaries", path: "/beneficiaries" },
-  { icon: IndianRupee, label: "Donations", path: "/donations" },
+  { iconKey: "currency", label: "Donations", path: "/donations" },
   { icon: FolderKanban, label: "Projects", path: "/projects" },
   { icon: Receipt, label: "Expenses", path: "/expenses" },
   { icon: UserCheck, label: "Volunteers", path: "/volunteers" },
@@ -34,6 +48,12 @@ const menuItems = [
 export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { currentRole, location: ngoLocation, permissions } = useRules();
+
+  const allowedPaths = getMenuItemsForRole(currentRole);
+  const CurrencyIcon = getCurrencyIcon(ngoLocation.country?.currency.code);
+
+  const menuItems = allMenuItems.filter(item => allowedPaths.includes(item.path));
 
   return (
     <aside
@@ -49,7 +69,9 @@ export const Sidebar = () => {
         {!collapsed && (
           <div className="overflow-hidden">
             <h1 className="font-bold text-lg text-foreground">NGO Manager</h1>
-            <p className="text-xs text-muted-foreground">Trust Edition</p>
+            <p className="text-xs text-muted-foreground">
+              {ngoLocation.country?.countryName || 'Global Edition'}
+            </p>
           </div>
         )}
       </div>
@@ -59,6 +81,7 @@ export const Sidebar = () => {
         <ul className="space-y-1">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
+            const Icon = item.iconKey === 'currency' ? CurrencyIcon : item.icon;
             return (
               <li key={item.path}>
                 <NavLink
@@ -66,7 +89,7 @@ export const Sidebar = () => {
                   className={`sidebar-link ${isActive ? "active" : ""}`}
                   title={collapsed ? item.label : undefined}
                 >
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  {Icon && <Icon className="w-5 h-5 flex-shrink-0" />}
                   {!collapsed && <span>{item.label}</span>}
                 </NavLink>
               </li>
@@ -77,7 +100,7 @@ export const Sidebar = () => {
 
       {/* Footer */}
       <div className="p-3 border-t border-sidebar-border">
-        <button className="sidebar-link w-full text-red-400 hover:text-red-300 hover:bg-red-500/10">
+        <button className="sidebar-link w-full text-destructive hover:text-destructive/80 hover:bg-destructive/10">
           <LogOut className="w-5 h-5 flex-shrink-0" />
           {!collapsed && <span>Logout</span>}
         </button>
