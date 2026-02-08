@@ -5,24 +5,54 @@ import { ComplianceAlerts } from "@/components/dashboard/ComplianceAlerts";
 import { ProjectProgress } from "@/components/dashboard/ProjectProgress";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { DonationChart } from "@/components/dashboard/DonationChart";
-import { IndianRupee, Users, FolderKanban, Percent, AlertTriangle, Receipt } from "lucide-react";
+import { FederationWidget } from "@/components/dashboard/FederationWidget";
+import { AISuggestions } from "@/components/dashboard/AISuggestions";
+import { AuditLogWidget } from "@/components/dashboard/AuditLogWidget";
+import { DonorDashboard } from "@/components/dashboard/DonorDashboard";
+import { useRules } from "@/contexts/RuleContext";
+import { IndianRupee, Users, FolderKanban, Percent, AlertTriangle, Receipt, DollarSign, PoundSterling, Coins } from "lucide-react";
+
+const getCurrencyIcon = (currencyCode: string) => {
+  switch (currencyCode) {
+    case 'INR': return IndianRupee;
+    case 'USD': return DollarSign;
+    case 'GBP': return PoundSterling;
+    default: return Coins;
+  }
+};
 
 const Dashboard = () => {
+  const { permissions, currentRole, location, formatCurrency } = useRules();
+
+  // Donor role gets completely different dashboard
+  if (currentRole === 'donor') {
+    return (
+      <MainLayout title="Donor Dashboard" subtitle="Your donation history and tax documents">
+        <DonorDashboard />
+      </MainLayout>
+    );
+  }
+
+  const CurrencyIcon = location.country ? getCurrencyIcon(location.country.currency.code) : IndianRupee;
+  const widgets = permissions?.dashboardWidgets || [];
+
+  const showWidget = (name: string) => widgets.includes(name);
+
   return (
     <MainLayout title="Dashboard" subtitle="Welcome back! Here's your NGO overview.">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         <StatCard
           title="Total Donations"
-          value="₹1.24 Cr"
+          value={formatCurrency(12400000)}
           change="+18.2%"
           trend="up"
-          icon={IndianRupee}
+          icon={CurrencyIcon}
           iconBg="primary"
         />
         <StatCard
-          title="80G Eligible"
-          value="₹98.5 L"
+          title={location.country?.countryCode === 'IN' ? '80G Eligible' : 'Tax Deductible'}
+          value={formatCurrency(9850000)}
           change="+12.5%"
           trend="up"
           icon={Receipt}
@@ -66,15 +96,18 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left Column - Chart & Table */}
         <div className="xl:col-span-2 space-y-6">
-          <DonationChart />
-          <RecentDonations />
+          {showWidget('donations') && <DonationChart />}
+          {showWidget('donations') && <RecentDonations />}
+          {showWidget('federation') && <FederationWidget />}
+          {showWidget('audit_logs') && <AuditLogWidget />}
         </div>
 
         {/* Right Column - Widgets */}
         <div className="space-y-6">
-          <QuickActions />
-          <ComplianceAlerts />
-          <ProjectProgress />
+          {showWidget('quick_actions') && <QuickActions />}
+          {showWidget('ai_suggestions') && <AISuggestions />}
+          {showWidget('compliance') && <ComplianceAlerts />}
+          {showWidget('projects') && <ProjectProgress />}
         </div>
       </div>
     </MainLayout>

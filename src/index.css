@@ -44,7 +44,9 @@
     --purple-glow: 270 80% 65%;
     --purple-deep: 260 60% 25%;
     --success: 145 65% 45%;
+    --success-foreground: 0 0% 100%;
     --warning: 40 95% 55%;
+    --warning-foreground: 0 0% 0%;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(270 70% 60%), hsl(320 70% 55%));

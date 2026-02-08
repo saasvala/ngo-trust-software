@@ -1,4 +1,8 @@
 import { Bell, Search, User, ChevronDown } from "lucide-react";
+import { LocationBadge } from "./LocationBadge";
+import { RoleSwitcher } from "./RoleSwitcher";
+import { useRules } from "@/contexts/RuleContext";
+import { getRoleLabel } from "@/lib/data/roles";
 
 interface HeaderProps {
   title: string;
@@ -6,6 +10,8 @@ interface HeaderProps {
 }
 
 export const Header = ({ title, subtitle }: HeaderProps) => {
+  const { currentRole } = useRules();
+
   return (
     <header className="h-20 flex items-center justify-between px-8 border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-40">
       {/* Left - Title */}
@@ -16,13 +22,19 @@ export const Header = ({ title, subtitle }: HeaderProps) => {
 
       {/* Right - Actions */}
       <div className="flex items-center gap-4">
+        {/* Location Badge */}
+        <LocationBadge />
+
+        {/* Role Switcher (Demo) */}
+        <RoleSwitcher />
+
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search..."
-            className="w-64 pl-10 pr-4 py-2 bg-secondary rounded-lg text-sm text-foreground placeholder:text-muted-foreground border border-transparent focus:border-primary focus:outline-none transition-colors"
+            className="w-48 pl-10 pr-4 py-2 bg-secondary rounded-lg text-sm text-foreground placeholder:text-muted-foreground border border-transparent focus:border-primary focus:outline-none transition-colors"
           />
         </div>
 
@@ -39,7 +51,7 @@ export const Header = ({ title, subtitle }: HeaderProps) => {
           </div>
           <div className="text-left">
             <p className="text-sm font-medium text-foreground">Admin User</p>
-            <p className="text-xs text-muted-foreground">Super Admin</p>
+            <p className="text-xs text-muted-foreground">{getRoleLabel(currentRole)}</p>
           </div>
           <ChevronDown className="w-4 h-4 text-muted-foreground" />
         </button>
