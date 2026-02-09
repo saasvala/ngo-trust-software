@@ -227,6 +227,111 @@
     animation: pulse 4s ease-in-out infinite;
   }
 
+  /* 3D Card Effects */
+  .card-3d {
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card-3d:hover {
+    transform: translateY(-4px) rotateX(2deg);
+    box-shadow: 
+      0 20px 40px -15px hsl(0 0% 0% / 0.4),
+      0 0 30px -10px hsl(var(--primary) / 0.3);
+  }
+
+  /* Accordion animations */
+  .accordion-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  }
+
+  .accordion-content[data-state="closed"] {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  .accordion-content[data-state="open"] {
+    max-height: 2000px;
+    opacity: 1;
+  }
+
+  /* Progress bar animation */
+  .progress-animate {
+    animation: progressFill 1s ease-out forwards;
+  }
+
+  @keyframes progressFill {
+    from { width: 0%; }
+  }
+
+  /* Chart draw-in animation */
+  .chart-animate path {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: chartDraw 1.5s ease-out forwards;
+  }
+
+  @keyframes chartDraw {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* Stagger animation for lists */
+  .stagger-animate > * {
+    animation: fadeSlideIn 0.4s ease-out forwards;
+    opacity: 0;
+  }
+
+  .stagger-animate > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-animate > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-animate > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-animate > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger-animate > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger-animate > *:nth-child(6) { animation-delay: 250ms; }
+
+  @keyframes fadeSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Number count-up visual effect */
+  .count-up {
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Subtle elevation on hover */
+  .hover-elevate {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-elevate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -10px hsl(0 0% 0% / 0.3);
+  }
+
+  /* Breadcrumb animation */
+  .breadcrumb-animate {
+    animation: breadcrumbSlide 0.3s ease-out;
+  }
+
+  @keyframes breadcrumbSlide {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-20px); }
