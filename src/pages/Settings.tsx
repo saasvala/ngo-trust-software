@@ -1,152 +1,24 @@
-import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { LocationSettings } from "@/components/settings/LocationSettings";
 import { useRules } from "@/contexts/RuleContext";
-import { countries, getStatesByCountry } from "@/lib/data/countries";
-import { 
-  Globe, 
-  MapPin, 
-  Building2, 
-  Shield, 
-  Eye, 
-  EyeOff, 
-  Bell, 
-  Lock,
-  Save,
-  RefreshCw
-} from "lucide-react";
+import { Bell, Shield, Eye, EyeOff, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Settings = () => {
-  const { 
-    location, 
-    transparency, 
-    permissions, 
-    setCountry, 
-    setState, 
-    setTransparency,
-    isSetupComplete 
-  } = useRules();
+  const { transparency, setTransparency, permissions, location, currentRole } = useRules();
+  const isSuperAdmin = currentRole === 'super_admin';
 
-  const [editingLocation, setEditingLocation] = useState(false);
-  const states = location.country ? getStatesByCountry(location.country.countryCode) : [];
-
-  const getCountryFlag = (code: string): string => {
-    const flags: Record<string, string> = { IN: '🇮🇳', US: '🇺🇸', GB: '🇬🇧', CA: '🇨🇦', AU: '🇦🇺' };
-    return flags[code] || '🌍';
+  const handleLogout = () => {
+    localStorage.removeItem('ngo_location_config');
+    localStorage.removeItem('ngo_current_role');
+    window.location.href = '/login';
   };
 
   return (
     <MainLayout title="Settings" subtitle="Configure your NGO software">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Location Configuration */}
-        <div className="glass-card p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/20">
-                <Globe className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Location Configuration</h3>
-                <p className="text-sm text-muted-foreground">Country & state determine all rules</p>
-              </div>
-            </div>
-            {permissions?.canConfigureLocation && (
-              <button
-                onClick={() => setEditingLocation(!editingLocation)}
-                className="text-sm text-primary hover:underline"
-              >
-                {editingLocation ? 'Cancel' : 'Edit'}
-              </button>
-            )}
-          </div>
-
-          {!editingLocation ? (
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-secondary/50">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{getCountryFlag(location.country?.countryCode || '')}</span>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Country</p>
-                    <p className="font-medium text-foreground">{location.country?.countryName || 'Not configured'}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="p-4 rounded-xl bg-secondary/50">
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">State / Region</p>
-                    <p className="font-medium text-foreground">{location.state?.stateName || 'Not configured'}</p>
-                  </div>
-                </div>
-              </div>
-              {location.country && (
-                <div className="p-4 rounded-xl bg-secondary/50">
-                  <p className="text-sm text-muted-foreground mb-2">Active Features</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-2 py-1 rounded-full bg-primary/20 text-primary text-xs">
-                      {location.country.currency.symbol} {location.country.currency.code}
-                    </span>
-                    <span className="px-2 py-1 rounded-full bg-teal/20 text-teal text-xs">
-                      {location.country.fiscalYear.label}
-                    </span>
-                    {location.country.complianceTypes.slice(0, 2).map(ct => (
-                      <span key={ct.id} className="px-2 py-1 rounded-full bg-coral/20 text-coral text-xs">
-                        {ct.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Country</label>
-                <select
-                  value={location.country?.countryCode || ''}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="w-full input-dark"
-                >
-                  <option value="">Select country</option>
-                  {countries.map(c => (
-                    <option key={c.countryCode} value={c.countryCode}>
-                      {getCountryFlag(c.countryCode)} {c.countryName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {location.country && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">State / Region</label>
-                  <select
-                    value={location.state?.stateCode || ''}
-                    onChange={(e) => setState(e.target.value)}
-                    className="w-full input-dark"
-                  >
-                    <option value="">Select state</option>
-                    {states.map(s => (
-                      <option key={s.stateCode} value={s.stateCode}>{s.stateName}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <button
-                onClick={() => setEditingLocation(false)}
-                className="w-full py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                Save Location
-              </button>
-            </div>
-          )}
-
-          {!permissions?.canConfigureLocation && (
-            <div className="mt-4 p-3 rounded-lg bg-secondary/50 flex items-center gap-2 text-sm text-muted-foreground">
-              <Lock className="w-4 h-4" />
-              Only Super Admin can change location
-            </div>
-          )}
-        </div>
+        {/* Location Configuration - Super Admin Only */}
+        <LocationSettings />
 
         {/* Transparency Portal */}
         <div className="glass-card p-6">
@@ -287,6 +159,26 @@ const Settings = () => {
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Logout */}
+        <div className="lg:col-span-2">
+          <div className="glass-card p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-destructive/20">
+                  <LogOut className="w-5 h-5 text-destructive" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Exit Demo</h3>
+                  <p className="text-sm text-muted-foreground">Return to role selection screen</p>
+                </div>
+              </div>
+              <Button variant="destructive" onClick={handleLogout}>
+                Exit Demo
+              </Button>
+            </div>
           </div>
         </div>
       </div>

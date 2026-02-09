@@ -1,8 +1,15 @@
-import { Bell, Search, User, ChevronDown } from "lucide-react";
+import { Bell, Search, User, ChevronDown, LogOut } from "lucide-react";
 import { LocationBadge } from "./LocationBadge";
 import { RoleSwitcher } from "./RoleSwitcher";
 import { useRules } from "@/contexts/RuleContext";
 import { getRoleLabel } from "@/lib/data/roles";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   title: string;
@@ -11,6 +18,12 @@ interface HeaderProps {
 
 export const Header = ({ title, subtitle }: HeaderProps) => {
   const { currentRole } = useRules();
+
+  const handleLogout = () => {
+    localStorage.removeItem('ngo_location_config');
+    localStorage.removeItem('ngo_current_role');
+    window.location.href = '/login';
+  };
 
   return (
     <header className="h-20 flex items-center justify-between px-8 border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-40">
@@ -29,7 +42,7 @@ export const Header = ({ title, subtitle }: HeaderProps) => {
         <RoleSwitcher />
 
         {/* Search */}
-        <div className="relative">
+        <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
@@ -45,16 +58,31 @@ export const Header = ({ title, subtitle }: HeaderProps) => {
         </button>
 
         {/* User Menu */}
-        <button className="flex items-center gap-3 p-2 pr-4 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-teal flex items-center justify-center">
-            <User className="w-4 h-4 text-white" />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-medium text-foreground">Admin User</p>
-            <p className="text-xs text-muted-foreground">{getRoleLabel(currentRole)}</p>
-          </div>
-          <ChevronDown className="w-4 h-4 text-muted-foreground" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-3 p-2 pr-4 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-teal flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <div className="text-left hidden sm:block">
+                <p className="text-sm font-medium text-foreground">Demo User</p>
+                <p className="text-xs text-muted-foreground">{getRoleLabel(currentRole)}</p>
+              </div>
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem className="text-muted-foreground">
+              <User className="w-4 h-4 mr-2" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+              <LogOut className="w-4 h-4 mr-2" />
+              Exit Demo
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
