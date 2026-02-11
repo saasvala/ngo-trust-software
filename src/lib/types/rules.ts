@@ -2,14 +2,18 @@
 
 export type AppRole = 
   | 'super_admin'
+  | 'system_owner'
   | 'country_admin'
   | 'state_admin'
   | 'ngo_admin'
   | 'accountant'
   | 'operator'
+  | 'project_manager'
+  | 'field_executor'
   | 'auditor'
   | 'government_officer'
-  | 'donor';
+  | 'donor'
+  | 'view_only';
 
 export interface Currency {
   code: string;

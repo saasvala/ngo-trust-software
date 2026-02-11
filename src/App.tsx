@@ -13,6 +13,11 @@ import Projects from "./pages/Projects";
 import Expenses from "./pages/Expenses";
 import Volunteers from "./pages/Volunteers";
 import Compliance from "./pages/Compliance";
+import Audit from "./pages/Audit";
+import Risk from "./pages/Risk";
+import Grants from "./pages/Grants";
+import Approvals from "./pages/Approvals";
+import Assets from "./pages/Assets";
 import Reports from "./pages/Reports";
 import Documents from "./pages/Documents";
 import Settings from "./pages/Settings";
@@ -37,6 +42,11 @@ const App = () => (
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/volunteers" element={<Volunteers />} />
             <Route path="/compliance" element={<Compliance />} />
+            <Route path="/audit" element={<Audit />} />
+            <Route path="/risk" element={<Risk />} />
+            <Route path="/grants" element={<Grants />} />
+            <Route path="/approvals" element={<Approvals />} />
+            <Route path="/assets" element={<Assets />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/settings" element={<Settings />} />

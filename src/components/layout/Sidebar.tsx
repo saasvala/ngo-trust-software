@@ -18,6 +18,11 @@ import {
   DollarSign,
   PoundSterling,
   Coins,
+  ClipboardList,
+  AlertTriangle,
+  Landmark,
+  CheckSquare,
+  Package,
 } from "lucide-react";
 import { useRules } from "@/contexts/RuleContext";
 import { getMenuItemsForRole } from "@/lib/data/roles";
@@ -40,6 +45,11 @@ const allMenuItems = [
   { icon: Receipt, label: "Expenses", path: "/expenses" },
   { icon: UserCheck, label: "Volunteers", path: "/volunteers" },
   { icon: Shield, label: "Compliance", path: "/compliance" },
+  { icon: ClipboardList, label: "Audit", path: "/audit" },
+  { icon: AlertTriangle, label: "Risk", path: "/risk" },
+  { icon: Landmark, label: "Grants", path: "/grants" },
+  { icon: CheckSquare, label: "Approvals", path: "/approvals" },
+  { icon: Package, label: "Assets", path: "/assets" },
   { icon: FileBarChart, label: "Reports", path: "/reports" },
   { icon: FileText, label: "Documents", path: "/documents" },
   { icon: Settings, label: "Settings", path: "/settings" },
