@@ -123,13 +123,11 @@ export const RuleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const completeSetup = () => {
-    if (location.country && location.state) {
-      setLocation(prev => ({
-        ...prev,
-        isConfigured: true,
-        configuredAt: new Date().toISOString(),
-      }));
-    }
+    setLocation(prev => ({
+      ...prev,
+      isConfigured: true,
+      configuredAt: new Date().toISOString(),
+    }));
   };
 
   const setRole = (role: AppRole) => {
