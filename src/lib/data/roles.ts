@@ -109,7 +109,7 @@ export const getRoleLabel = (role: AppRole): string => {
     operator: 'Operator',
     project_manager: 'Project Manager',
     field_executor: 'Field Executor',
-    auditor: 'Auditor / CA',
+    auditor: 'CA / Auditor',
     government_officer: 'Government Officer',
     donor: 'Donor',
     view_only: 'View Only',

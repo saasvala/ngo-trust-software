@@ -5,7 +5,7 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface StatCard3DProps {
   title: string;
-  value: number;
+  value: number | string;
   prefix?: string;
   suffix?: string;
   change?: string;
@@ -65,15 +65,19 @@ export const StatCard3D = ({
       <div className="relative z-10 flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <p className="text-sm text-muted-foreground truncate mb-1">{title}</p>
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <AnimatedCounter
-              value={value}
-              prefix={prefix}
-              className="text-2xl font-bold text-foreground"
-            />
-            {suffix && (
-              <span className="text-sm text-muted-foreground">{suffix}</span>
-            )}
+            <div className="flex items-baseline gap-2 flex-wrap">
+              {typeof value === 'number' ? (
+                <AnimatedCounter
+                  value={value}
+                  prefix={prefix}
+                  className="text-2xl font-bold text-foreground"
+                />
+              ) : (
+                <span className="text-2xl font-bold text-foreground">{prefix}{value}</span>
+              )}
+              {suffix && (
+                <span className="text-sm text-muted-foreground">{suffix}</span>
+              )}
           </div>
           {change && (
             <div
