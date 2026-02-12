@@ -3,11 +3,15 @@ import { useRules } from "@/contexts/RuleContext";
 import { SuperAdminDashboard } from "@/components/dashboard/roles/SuperAdminDashboard";
 import { SystemOwnerDashboard } from "@/components/dashboard/roles/SystemOwnerDashboard";
 import { NGOAdminDashboard } from "@/components/dashboard/roles/NGOAdminDashboard";
+import { CountryAdminDashboard } from "@/components/dashboard/roles/CountryAdminDashboard";
+import { StateAdminDashboard } from "@/components/dashboard/roles/StateAdminDashboard";
 import { AccountantDashboard } from "@/components/dashboard/roles/AccountantDashboard";
 import { OperatorDashboard } from "@/components/dashboard/roles/OperatorDashboard";
 import { ProjectManagerDashboard } from "@/components/dashboard/roles/ProjectManagerDashboard";
 import { FieldExecutorDashboard } from "@/components/dashboard/roles/FieldExecutorDashboard";
 import { AuditorDashboard } from "@/components/dashboard/roles/AuditorDashboard";
+import { CADashboard } from "@/components/dashboard/roles/CADashboard";
+import { GovernmentOfficerDashboard } from "@/components/dashboard/roles/GovernmentOfficerDashboard";
 import { DonorPortalDashboard } from "@/components/dashboard/roles/DonorPortalDashboard";
 import { ViewOnlyDashboard } from "@/components/dashboard/roles/ViewOnlyDashboard";
 import { getRoleLabel } from "@/lib/data/roles";
@@ -19,15 +23,15 @@ const Dashboard = () => {
     switch (currentRole) {
       case 'super_admin': return <SuperAdminDashboard />;
       case 'system_owner': return <SystemOwnerDashboard />;
-      case 'country_admin':
-      case 'state_admin':
+      case 'country_admin': return <CountryAdminDashboard />;
+      case 'state_admin': return <StateAdminDashboard />;
       case 'ngo_admin': return <NGOAdminDashboard />;
       case 'accountant': return <AccountantDashboard />;
       case 'operator': return <OperatorDashboard />;
       case 'project_manager': return <ProjectManagerDashboard />;
       case 'field_executor': return <FieldExecutorDashboard />;
-      case 'auditor':
-      case 'government_officer': return <AuditorDashboard />;
+      case 'auditor': return <CADashboard />;
+      case 'government_officer': return <GovernmentOfficerDashboard />;
       case 'donor': return <DonorPortalDashboard />;
       case 'view_only': return <ViewOnlyDashboard />;
       default: return <NGOAdminDashboard />;
@@ -45,8 +49,8 @@ const Dashboard = () => {
       case 'operator': return 'Daily tasks and quick actions';
       case 'project_manager': return 'Project portfolio, milestones & budget tracking';
       case 'field_executor': return 'Assigned field tasks and evidence capture';
-      case 'auditor':
-      case 'government_officer': return 'Compliance verification and audit access';
+      case 'auditor': return '80G receipt audit, tax compliance & statutory filings';
+      case 'government_officer': return 'Regulatory oversight of NGO compliance and fund utilization';
       case 'donor': return 'Your donation history and tax documents';
       case 'view_only': return 'Read-only organization overview';
       default: return 'Welcome to NGO Manager';
