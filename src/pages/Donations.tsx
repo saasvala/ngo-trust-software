@@ -11,8 +11,9 @@ import { toast } from "@/hooks/use-toast";
 import {
   Search, Plus, Receipt, CreditCard, Banknote, Smartphone,
   Building2, Globe, CheckCircle2, XCircle, Heart, Calendar,
-  Download, Filter
+  Download, Filter, FileText
 } from "lucide-react";
+import { generate80GReceipt } from "@/lib/utils/generate80GReceipt";
 
 interface Donor {
   id: string;
@@ -141,6 +142,25 @@ const Donations = () => {
     setTaxEligible(true);
     setSelectedDonor(null);
     setDonorSearch("");
+  };
+
+  const handleGenerate80G = async (donation: Donation) => {
+    const donor = donors.find(d => d.full_name === donation.donors?.full_name);
+    await generate80GReceipt({
+      receiptNumber: donation.receipt_number || `80G-${donation.donation_number}`,
+      donationNumber: donation.donation_number,
+      donorName: donation.donors?.full_name || "Anonymous",
+      donorPAN: donor?.pan_number || null,
+      donorAddress: null,
+      amount: Number(donation.amount),
+      currency: donation.currency,
+      currencySymbol,
+      paymentMode: donation.payment_mode,
+      donationDate: donation.donation_date,
+      purpose: donation.purpose,
+      projectName: donation.projects?.name || null,
+    });
+    toast({ title: "80G Receipt Generated", description: `PDF downloaded for ${donation.donation_number}` });
   };
 
   return (
@@ -373,13 +393,14 @@ const Donations = () => {
                   <th>Project</th>
                   <th>Date</th>
                   <th>Tax</th>
+                  <th>80G</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={8} className="text-center py-8 text-muted-foreground">Loading...</td></tr>
                 ) : filteredDonations.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">No donations found</td></tr>
+                  <tr><td colSpan={8} className="text-center py-8 text-muted-foreground">No donations found</td></tr>
                 ) : (
                   filteredDonations.map(d => (
                     <tr key={d.id}>
@@ -394,6 +415,16 @@ const Donations = () => {
                           <span className="badge-success">80G</span>
                         ) : (
                           <span className="text-xs text-muted-foreground">No</span>
+                        )}
+                      </td>
+                      <td>
+                        {d.tax_benefit_eligible && (
+                          <button
+                            onClick={() => handleGenerate80G(d)}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                          >
+                            <FileText className="w-3 h-3" /> Receipt
+                          </button>
                         )}
                       </td>
                     </tr>
