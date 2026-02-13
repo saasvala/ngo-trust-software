@@ -1,6 +1,7 @@
-import { Bell, Search, User, ChevronDown, LogOut } from "lucide-react";
+import { Search, User, ChevronDown, LogOut } from "lucide-react";
 import { LocationBadge } from "./LocationBadge";
 import { RoleSwitcher } from "./RoleSwitcher";
+import { NotificationBell } from "./NotificationBell";
 import { useRules } from "@/contexts/RuleContext";
 import { getRoleLabel } from "@/lib/data/roles";
 import {
@@ -52,10 +53,7 @@ export const Header = ({ title, subtitle }: HeaderProps) => {
         </div>
 
         {/* Notifications */}
-        <button className="relative p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
-          <Bell className="w-5 h-5 text-muted-foreground" />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-coral" />
-        </button>
+        <NotificationBell />
 
         {/* User Menu */}
         <DropdownMenu>
