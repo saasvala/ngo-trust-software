@@ -133,6 +133,12 @@ export const getMenuItemsForRole = (role: AppRole): string[] => {
   if (permissions.canManageFederation) items.push('/grants', '/approvals');
   if (permissions.canManageProjects || role === 'project_manager') items.push('/assets');
   items.push('/documents');
+
+  // Infrastructure pages - System Owner & Super Admin only
+  if (role === 'system_owner' || role === 'super_admin') {
+    items.push('/backups', '/system-health', '/api-webhooks', '/bulk-import', '/billing', '/security', '/usage-analytics');
+  }
+
   if (permissions.canConfigureLocation || role === 'ngo_admin') items.push('/settings');
   
   // Field executor gets minimal

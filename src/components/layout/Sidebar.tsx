@@ -23,6 +23,13 @@ import {
   Landmark,
   CheckSquare,
   Package,
+  Database,
+  Activity,
+  Webhook,
+  Upload,
+  CreditCard,
+  Lock,
+  BarChart3,
 } from "lucide-react";
 import { useRules } from "@/contexts/RuleContext";
 import { getMenuItemsForRole } from "@/lib/data/roles";
@@ -52,6 +59,13 @@ const allMenuItems = [
   { icon: Package, label: "Assets", path: "/assets" },
   { icon: FileBarChart, label: "Reports", path: "/reports" },
   { icon: FileText, label: "Documents", path: "/documents" },
+  { icon: Database, label: "Backups", path: "/backups" },
+  { icon: Activity, label: "Health", path: "/system-health" },
+  { icon: Webhook, label: "API & Webhooks", path: "/api-webhooks" },
+  { icon: Upload, label: "Bulk Import", path: "/bulk-import" },
+  { icon: CreditCard, label: "Billing", path: "/billing" },
+  { icon: Lock, label: "Security", path: "/security" },
+  { icon: BarChart3, label: "Analytics", path: "/usage-analytics" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
 

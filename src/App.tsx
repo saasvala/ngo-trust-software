@@ -21,6 +21,13 @@ import Assets from "./pages/Assets";
 import Reports from "./pages/Reports";
 import Documents from "./pages/Documents";
 import Settings from "./pages/Settings";
+import Backups from "./pages/Backups";
+import SystemHealth from "./pages/SystemHealth";
+import ApiWebhooks from "./pages/ApiWebhooks";
+import BulkImport from "./pages/BulkImport";
+import Billing from "./pages/Billing";
+import SecurityAdmin from "./pages/SecurityAdmin";
+import UsageAnalytics from "./pages/UsageAnalytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +57,13 @@ const App = () => (
             <Route path="/reports" element={<Reports />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/backups" element={<Backups />} />
+            <Route path="/system-health" element={<SystemHealth />} />
+            <Route path="/api-webhooks" element={<ApiWebhooks />} />
+            <Route path="/bulk-import" element={<BulkImport />} />
+            <Route path="/billing" element={<Billing />} />
+            <Route path="/security" element={<SecurityAdmin />} />
+            <Route path="/usage-analytics" element={<UsageAnalytics />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
