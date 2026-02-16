@@ -17,6 +17,10 @@ import Audit from "./pages/Audit";
 import Risk from "./pages/Risk";
 import Grants from "./pages/Grants";
 import Approvals from "./pages/Approvals";
+import BudgetPlanning from "./pages/BudgetPlanning";
+import AutomationRules from "./pages/AutomationRules";
+import GovernmentFiling from "./pages/GovernmentFiling";
+import DataGovernance from "./pages/DataGovernance";
 import Assets from "./pages/Assets";
 import Reports from "./pages/Reports";
 import Documents from "./pages/Documents";
@@ -53,6 +57,10 @@ const App = () => (
             <Route path="/risk" element={<Risk />} />
             <Route path="/grants" element={<Grants />} />
             <Route path="/approvals" element={<Approvals />} />
+            <Route path="/budget" element={<BudgetPlanning />} />
+            <Route path="/automation" element={<AutomationRules />} />
+            <Route path="/government-filing" element={<GovernmentFiling />} />
+            <Route path="/data-governance" element={<DataGovernance />} />
             <Route path="/assets" element={<Assets />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/documents" element={<Documents />} />
