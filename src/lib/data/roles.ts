@@ -131,7 +131,10 @@ export const getMenuItemsForRole = (role: AppRole): string[] => {
   if (permissions.canManageCompliance) items.push('/compliance', '/audit');
   if (permissions.canViewReports) items.push('/reports', '/risk');
   if (permissions.canManageFederation) items.push('/grants', '/approvals');
-  if (permissions.canManageProjects || role === 'project_manager') items.push('/assets');
+  if (permissions.canManageProjects || role === 'project_manager') items.push('/assets', '/budget');
+  if (permissions.canApproveExpenses) items.push('/automation');
+  if (permissions.canManageCompliance) items.push('/government-filing');
+  if (role === 'super_admin' || role === 'system_owner' || role === 'ngo_admin') items.push('/data-governance');
   items.push('/documents');
 
   // Infrastructure pages - System Owner & Super Admin only
