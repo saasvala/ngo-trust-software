@@ -32,6 +32,11 @@ import BulkImport from "./pages/BulkImport";
 import Billing from "./pages/Billing";
 import SecurityAdmin from "./pages/SecurityAdmin";
 import UsageAnalytics from "./pages/UsageAnalytics";
+import FinancialIntelligence from "./pages/FinancialIntelligence";
+import FraudDetection from "./pages/FraudDetection";
+import ImpactMeasurement from "./pages/ImpactMeasurement";
+import BoardDashboard from "./pages/BoardDashboard";
+import CSRReporting from "./pages/CSRReporting";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +77,11 @@ const App = () => (
             <Route path="/billing" element={<Billing />} />
             <Route path="/security" element={<SecurityAdmin />} />
             <Route path="/usage-analytics" element={<UsageAnalytics />} />
+            <Route path="/financial-intelligence" element={<FinancialIntelligence />} />
+            <Route path="/fraud-detection" element={<FraudDetection />} />
+            <Route path="/impact-measurement" element={<ImpactMeasurement />} />
+            <Route path="/board-dashboard" element={<BoardDashboard />} />
+            <Route path="/csr-reporting" element={<CSRReporting />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

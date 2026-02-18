@@ -142,6 +142,31 @@ export const getMenuItemsForRole = (role: AppRole): string[] => {
     items.push('/backups', '/system-health', '/api-webhooks', '/bulk-import', '/billing', '/security', '/usage-analytics');
   }
 
+  // Financial intelligence - Admin roles and accountant
+  if (role === 'super_admin' || role === 'country_admin' || role === 'state_admin' || role === 'ngo_admin' || role === 'accountant') {
+    items.push('/financial-intelligence');
+  }
+
+  // Fraud detection - Admin and auditor
+  if (role === 'super_admin' || role === 'country_admin' || role === 'state_admin' || role === 'ngo_admin' || role === 'auditor') {
+    items.push('/fraud-detection');
+  }
+
+  // Impact measurement - Admins and project managers
+  if (role === 'super_admin' || role === 'country_admin' || role === 'state_admin' || role === 'ngo_admin' || role === 'project_manager') {
+    items.push('/impact-measurement');
+  }
+
+  // Board dashboard - Super admin, country admin, system owner
+  if (role === 'super_admin' || role === 'system_owner' || role === 'country_admin' || role === 'ngo_admin') {
+    items.push('/board-dashboard');
+  }
+
+  // CSR Reporting - Admin and accountant
+  if (role === 'super_admin' || role === 'country_admin' || role === 'ngo_admin' || role === 'accountant') {
+    items.push('/csr-reporting');
+  }
+
   if (permissions.canConfigureLocation || role === 'ngo_admin') items.push('/settings');
   
   // Field executor gets minimal

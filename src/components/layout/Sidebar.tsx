@@ -34,6 +34,10 @@ import {
   CreditCard,
   Lock,
   BarChart3,
+  TrendingUp,
+  ShieldAlert,
+  Target,
+  Briefcase,
 } from "lucide-react";
 import { useRules } from "@/contexts/RuleContext";
 import { getMenuItemsForRole } from "@/lib/data/roles";
@@ -75,6 +79,12 @@ const allMenuItems = [
   { icon: Lock, label: "Security", path: "/security" },
   { icon: BarChart3, label: "Analytics", path: "/usage-analytics" },
   { icon: Settings, label: "Settings", path: "/settings" },
+  // Intelligence modules
+  { icon: TrendingUp, label: "Financial Intel", path: "/financial-intelligence" },
+  { icon: ShieldAlert, label: "Fraud Detection", path: "/fraud-detection" },
+  { icon: Target, label: "Impact", path: "/impact-measurement" },
+  { icon: Briefcase, label: "Board View", path: "/board-dashboard" },
+  { icon: Building2, label: "CSR Reports", path: "/csr-reporting" },
 ];
 
 export const Sidebar = () => {
