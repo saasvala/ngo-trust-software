@@ -14,6 +14,85 @@ export type Database = {
   }
   public: {
     Tables: {
+      apks: {
+        Row: {
+          file_hash: string | null
+          file_name: string
+          file_size: number | null
+          id: string
+          package_name: string | null
+          product_id: string
+          storage_path: string | null
+          upload_date: string
+          version: string | null
+        }
+        Insert: {
+          file_hash?: string | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          package_name?: string | null
+          product_id: string
+          storage_path?: string | null
+          upload_date?: string
+          version?: string | null
+        }
+        Update: {
+          file_hash?: string | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          package_name?: string | null
+          product_id?: string
+          storage_path?: string | null
+          upload_date?: string
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apks_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_violations: {
+        Row: {
+          created_at: string
+          detected_string: string | null
+          id: string
+          product_id: string | null
+          resolved: boolean
+          violation_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          detected_string?: string | null
+          id?: string
+          product_id?: string | null
+          resolved?: boolean
+          violation_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          detected_string?: string | null
+          id?: string
+          product_id?: string | null
+          resolved?: boolean
+          violation_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_violations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       donations: {
         Row: {
           amount: number
@@ -137,6 +216,279 @@ export type Database = {
           phone?: string | null
           state?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      download_logs: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: string | null
+          license_key: string | null
+          product_id: string | null
+          status: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          license_key?: string | null
+          product_id?: string | null
+          status?: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          license_key?: string | null
+          product_id?: string | null
+          status?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "download_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      license_verification_logs: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          device_id: string | null
+          id: string
+          ip_address: string | null
+          license_key: string | null
+          product_id: string | null
+          result: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          ip_address?: string | null
+          license_key?: string | null
+          product_id?: string | null
+          result?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          ip_address?: string | null
+          license_key?: string | null
+          product_id?: string | null
+          result?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_verification_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      licenses: {
+        Row: {
+          activated_at: string | null
+          app_hash: string | null
+          created_at: string
+          device_id: string | null
+          expiry_date: string | null
+          id: string
+          license_key: string
+          payment_reference: string | null
+          product_id: string
+          status: string
+        }
+        Insert: {
+          activated_at?: string | null
+          app_hash?: string | null
+          created_at?: string
+          device_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          license_key: string
+          payment_reference?: string | null
+          product_id: string
+          status?: string
+        }
+        Update: {
+          activated_at?: string | null
+          app_hash?: string | null
+          created_at?: string
+          device_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          license_key?: string
+          payment_reference?: string | null
+          product_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licenses_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          apk_url: string | null
+          app_hash: string | null
+          category: string | null
+          created_at: string
+          deep_category: string | null
+          demo_click_count: number
+          demo_enabled: boolean
+          demo_login_id: string | null
+          demo_password: string | null
+          demo_url: string | null
+          description: string | null
+          device_bind: boolean
+          device_limit: number
+          expiry_type: string
+          feature_list_json: Json | null
+          featured: boolean
+          id: string
+          keywords_json: Json | null
+          license_enabled: boolean
+          log_downloads: boolean
+          micro_category: string | null
+          name: string
+          nano_category: string | null
+          package_name: string | null
+          price: number
+          repo_branch: string | null
+          repo_url: string | null
+          require_payment: boolean
+          screenshots_json: Json | null
+          secure_download: boolean
+          seo_description: string | null
+          seo_title: string | null
+          short_description: string | null
+          slug: string
+          source_method: string
+          status: string
+          storage_path: string | null
+          sub_category: string | null
+          tags_json: Json | null
+          target_industry: string | null
+          tech_stack_json: Json | null
+          thumbnail_url: string | null
+          trending: boolean
+          updated_at: string
+          use_case: string | null
+          version: string | null
+        }
+        Insert: {
+          apk_url?: string | null
+          app_hash?: string | null
+          category?: string | null
+          created_at?: string
+          deep_category?: string | null
+          demo_click_count?: number
+          demo_enabled?: boolean
+          demo_login_id?: string | null
+          demo_password?: string | null
+          demo_url?: string | null
+          description?: string | null
+          device_bind?: boolean
+          device_limit?: number
+          expiry_type?: string
+          feature_list_json?: Json | null
+          featured?: boolean
+          id?: string
+          keywords_json?: Json | null
+          license_enabled?: boolean
+          log_downloads?: boolean
+          micro_category?: string | null
+          name: string
+          nano_category?: string | null
+          package_name?: string | null
+          price?: number
+          repo_branch?: string | null
+          repo_url?: string | null
+          require_payment?: boolean
+          screenshots_json?: Json | null
+          secure_download?: boolean
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          slug: string
+          source_method?: string
+          status?: string
+          storage_path?: string | null
+          sub_category?: string | null
+          tags_json?: Json | null
+          target_industry?: string | null
+          tech_stack_json?: Json | null
+          thumbnail_url?: string | null
+          trending?: boolean
+          updated_at?: string
+          use_case?: string | null
+          version?: string | null
+        }
+        Update: {
+          apk_url?: string | null
+          app_hash?: string | null
+          category?: string | null
+          created_at?: string
+          deep_category?: string | null
+          demo_click_count?: number
+          demo_enabled?: boolean
+          demo_login_id?: string | null
+          demo_password?: string | null
+          demo_url?: string | null
+          description?: string | null
+          device_bind?: boolean
+          device_limit?: number
+          expiry_type?: string
+          feature_list_json?: Json | null
+          featured?: boolean
+          id?: string
+          keywords_json?: Json | null
+          license_enabled?: boolean
+          log_downloads?: boolean
+          micro_category?: string | null
+          name?: string
+          nano_category?: string | null
+          package_name?: string | null
+          price?: number
+          repo_branch?: string | null
+          repo_url?: string | null
+          require_payment?: boolean
+          screenshots_json?: Json | null
+          secure_download?: boolean
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          slug?: string
+          source_method?: string
+          status?: string
+          storage_path?: string | null
+          sub_category?: string | null
+          tags_json?: Json | null
+          target_industry?: string | null
+          tech_stack_json?: Json | null
+          thumbnail_url?: string | null
+          trending?: boolean
+          updated_at?: string
+          use_case?: string | null
+          version?: string | null
         }
         Relationships: []
       }

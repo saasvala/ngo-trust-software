@@ -37,6 +37,8 @@ import FraudDetection from "./pages/FraudDetection";
 import ImpactMeasurement from "./pages/ImpactMeasurement";
 import BoardDashboard from "./pages/BoardDashboard";
 import CSRReporting from "./pages/CSRReporting";
+import AddProduct from "./pages/AddProduct";
+import ProductCatalog from "./pages/ProductCatalog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +84,8 @@ const App = () => (
             <Route path="/impact-measurement" element={<ImpactMeasurement />} />
             <Route path="/board-dashboard" element={<BoardDashboard />} />
             <Route path="/csr-reporting" element={<CSRReporting />} />
+            <Route path="/admin/products" element={<ProductCatalog />} />
+            <Route path="/admin/add-product" element={<AddProduct />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
