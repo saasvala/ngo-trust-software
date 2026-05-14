@@ -378,7 +378,7 @@ const Donations = () => {
         <div className="glass-card overflow-hidden">
           <div className="p-4 border-b border-border flex items-center justify-between">
             <h3 className="font-semibold text-foreground">Recent Donations</h3>
-            <button onClick={() => toast.success(`Exported ${filteredDonations.length} donations`)} className="text-xs text-muted-foreground flex items-center gap-1 hover:text-foreground">
+            <button onClick={() => toast({ title: `Exported ${filteredDonations.length} donations` })} className="text-xs text-muted-foreground flex items-center gap-1 hover:text-foreground">
               <Download className="w-3 h-3" /> Export
             </button>
           </div>
