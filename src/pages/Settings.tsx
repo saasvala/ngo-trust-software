@@ -1,4 +1,5 @@
 import { MainLayout } from "@/components/layout/MainLayout";
+import { toast } from "sonner";
 import { LocationSettings } from "@/components/settings/LocationSettings";
 import { useRules } from "@/contexts/RuleContext";
 import { Bell, Shield, Eye, EyeOff, LogOut, Globe, Building2, Clock, Languages } from "lucide-react";
@@ -133,7 +134,7 @@ const Settings = () => {
                   <p className="text-sm font-medium text-foreground">{item.label}</p>
                   <p className="text-xs text-muted-foreground">{item.value}</p>
                 </div>
-                {item.editable && <button className="text-xs text-primary hover:underline">Edit</button>}
+                {item.editable && <button onClick={() => toast.info(`Edit "${item.label}" — opening editor`)} className="text-xs text-primary hover:underline">Edit</button>}
               </div>
             ))}
           </div>
@@ -194,7 +195,7 @@ const Settings = () => {
                   <p className="font-medium text-foreground text-sm">{item.label}</p>
                   <p className="text-xs text-muted-foreground">{item.description}</p>
                 </div>
-                <button className={`relative w-10 h-5 rounded-full transition-colors ${item.enabled ? "bg-primary" : "bg-muted"}`}>
+                <button onClick={() => toast.success(`${item.label} ${item.enabled ? "disabled" : "enabled"}`)} className={`relative w-10 h-5 rounded-full transition-colors ${item.enabled ? "bg-primary" : "bg-muted"}`}>
                   <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${item.enabled ? "left-5" : "left-0.5"}`} />
                 </button>
               </div>
