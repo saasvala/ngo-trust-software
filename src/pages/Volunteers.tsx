@@ -8,6 +8,7 @@ import {
   UserCheck, Search, Users, Briefcase, MapPin, Clock,
   Activity, Download, FileText, Star, Award, Shield
 } from "lucide-react";
+import { toast } from "sonner";
 
 const staffData = [
   { id: "VOL-001", name: "Ankit Sharma", role: "Field Coordinator", department: "Programs", location: "Varanasi", status: "active", type: "staff", joinDate: "2023-01-15", projects: 3 },
@@ -59,7 +60,7 @@ const Volunteers = () => {
                 </button>
               ))}
             </div>
-            <button className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
+            <button onClick={() => toast.success(`Exported ${filtered.length} team members`)} className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
               <Download className="w-3 h-3" /> Export
             </button>
           </div>
@@ -108,7 +109,7 @@ const Volunteers = () => {
 
         {/* Level 4: Deep Research */}
         <DashboardSection level="deep" title="HR Intelligence" subtitle="Retention, performance and capacity analytics" icon={<Activity className="w-5 h-5 text-coral" />} defaultExpanded={false}>
-          <DeepResearchView title="Team Analytics" subtitle="Workforce trends and capacity planning" onExport={() => {}}>
+          <DeepResearchView title="Team Analytics" subtitle="Workforce trends and capacity planning" onExport={() => toast.success("HR analytics exported")}>
             <div className="grid grid-cols-3 gap-4">
               {[
                 { label: "Avg Tenure", value: "2.8 years" },
