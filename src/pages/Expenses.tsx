@@ -11,6 +11,7 @@ import {
   Receipt, Search, Plus, Clock, CheckCircle, XCircle, TrendingUp,
   AlertTriangle, FileText, Download, Filter, Upload, Activity, IndianRupee
 } from "lucide-react";
+import { toast } from "sonner";
 
 const expenseData = [
   { id: "EXP-001", description: "Travel to Rampur field visit", category: "Travel", project: "Rural Education", amount: 12500, requestedBy: "Raj Kumar", date: "2025-02-10", status: "pending", billAttached: true },
@@ -78,7 +79,7 @@ const Expenses = () => {
                 </button>
               ))}
             </div>
-            <button className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
+            <button onClick={() => toast.success(`Exported ${filtered.length} expense records`)} className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
               <Download className="w-3 h-3" /> Export
             </button>
           </div>
@@ -119,8 +120,8 @@ const Expenses = () => {
                     <td>
                       {e.status === "pending" && (
                         <div className="flex gap-1">
-                          <button className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors"><CheckCircle className="w-3.5 h-3.5 text-success" /></button>
-                          <button className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors"><XCircle className="w-3.5 h-3.5 text-coral" /></button>
+                          <button onClick={() => toast.success(`${e.id} approved`)} className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors" title="Approve"><CheckCircle className="w-3.5 h-3.5 text-success" /></button>
+                          <button onClick={() => toast.error(`${e.id} rejected`)} className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors" title="Reject"><XCircle className="w-3.5 h-3.5 text-coral" /></button>
                         </div>
                       )}
                     </td>
@@ -149,7 +150,7 @@ const Expenses = () => {
 
         {/* Level 4: Deep Research */}
         <DashboardSection level="deep" title="Expense Intelligence" subtitle="Trend analysis and anomaly detection" icon={<Activity className="w-5 h-5 text-coral" />} defaultExpanded={false}>
-          <DeepResearchView title="Expense Analytics" subtitle="Monthly trends and budget adherence" onExport={() => {}}>
+          <DeepResearchView title="Expense Analytics" subtitle="Monthly trends and budget adherence" onExport={() => toast.success("Expense analytics exported")}>
             <div className="grid grid-cols-3 gap-4">
               {[
                 { label: "Avg Monthly Expense", value: `${currencySymbol}3.8L` },

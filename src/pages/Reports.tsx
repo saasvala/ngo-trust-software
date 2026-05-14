@@ -8,6 +8,7 @@ import {
   FileBarChart, Download, FileText, TrendingUp, Users, FolderKanban,
   Receipt, Shield, Landmark, Activity, Calendar, Printer
 } from "lucide-react";
+import { toast } from "sonner";
 
 const reportTypes = [
   { id: "fy_summary", name: "FY Summary Report", description: "Complete financial year overview with income, expenses, and fund utilization", icon: Calendar, category: "Financial", lastGenerated: "2025-02-10" },
@@ -75,9 +76,9 @@ const Reports = () => {
                       <div className="flex items-center gap-3">
                         <span className="text-xs text-muted-foreground">Last: {new Date(r.lastGenerated).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</span>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="px-2 py-1 rounded bg-primary/20 text-primary text-xs font-medium hover:bg-primary/30">PDF</button>
-                          <button className="px-2 py-1 rounded bg-teal/20 text-teal text-xs font-medium hover:bg-teal/30">Excel</button>
-                          <button className="px-2 py-1 rounded bg-coral/20 text-coral text-xs font-medium hover:bg-coral/30">JSON</button>
+                          <button onClick={(e) => { e.stopPropagation(); toast.success(`${r.name} (PDF) generated`); }} className="px-2 py-1 rounded bg-primary/20 text-primary text-xs font-medium hover:bg-primary/30">PDF</button>
+                          <button onClick={(e) => { e.stopPropagation(); toast.success(`${r.name} (Excel) generated`); }} className="px-2 py-1 rounded bg-teal/20 text-teal text-xs font-medium hover:bg-teal/30">Excel</button>
+                          <button onClick={(e) => { e.stopPropagation(); toast.success(`${r.name} (JSON) generated`); }} className="px-2 py-1 rounded bg-coral/20 text-coral text-xs font-medium hover:bg-coral/30">JSON</button>
                         </div>
                       </div>
                     </div>
@@ -103,7 +104,7 @@ const Reports = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">{r.size}</span>
                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${r.format === "PDF" ? "bg-coral/20 text-coral" : r.format === "Excel" ? "bg-teal/20 text-teal" : "bg-primary/20 text-primary"}`}>{r.format}</span>
-                  <button className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
+                  <button onClick={() => toast.success(`Downloading ${r.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
                     <Download className="w-3.5 h-3.5 text-muted-foreground" />
                   </button>
                 </div>
@@ -114,7 +115,7 @@ const Reports = () => {
 
         {/* Level 4: Deep Research */}
         <DashboardSection level="deep" title="Report Intelligence" subtitle="Usage patterns and compliance coverage" icon={<Activity className="w-5 h-5 text-coral" />} defaultExpanded={false}>
-          <DeepResearchView title="Report Analytics" subtitle="Report generation trends and coverage analysis" onExport={() => {}}>
+          <DeepResearchView title="Report Analytics" subtitle="Report generation trends and coverage analysis" onExport={() => toast.success("Report analytics exported")}>
             <div className="grid grid-cols-3 gap-4">
               {[
                 { label: "Reports Generated (FY)", value: "187" },

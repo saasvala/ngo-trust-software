@@ -8,6 +8,7 @@ import {
   Users, Search, Heart, MapPin, GraduationCap, Baby,
   Activity, Download, FileText, UserCheck, TrendingUp, Shield
 } from "lucide-react";
+import { toast } from "sonner";
 
 const beneficiaryData = [
   { id: "BEN-001", name: "Sunita Devi", age: 32, gender: "Female", category: "Women Empowerment", project: "Skill Training", village: "Rampur", district: "Varanasi", status: "active", enrolled: "2024-06-15" },
@@ -60,7 +61,7 @@ const Beneficiaries = () => {
                 <button key={c} onClick={() => setFilterCategory(c)} className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${filterCategory === c ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>{c}</button>
               ))}
             </div>
-            <button className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
+            <button onClick={() => toast.success(`Exported ${filtered.length} beneficiaries`)} className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
               <Download className="w-3 h-3" /> Export
             </button>
           </div>
@@ -112,7 +113,7 @@ const Beneficiaries = () => {
 
         {/* Level 4: Deep Research */}
         <DashboardSection level="deep" title="Impact Intelligence" subtitle="Beneficiary outcome tracking and analysis" icon={<Activity className="w-5 h-5 text-coral" />} defaultExpanded={false}>
-          <DeepResearchView title="Impact Analytics" subtitle="Outcome measurement across programs" onExport={() => {}}>
+          <DeepResearchView title="Impact Analytics" subtitle="Outcome measurement across programs" onExport={() => toast.success("Impact analytics exported")}>
             <div className="grid grid-cols-3 gap-4">
               {[
                 { label: "Avg Benefit Duration", value: "14 months" },

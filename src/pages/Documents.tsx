@@ -8,6 +8,7 @@ import {
   FileText, Search, FolderOpen, Upload, Download, Clock,
   Shield, Activity, Lock, Eye, File, Image, FileSpreadsheet
 } from "lucide-react";
+import { toast } from "sonner";
 
 const documentData = [
   { id: "DOC-001", name: "12A Registration Certificate", category: "Compliance", type: "PDF", size: "2.1 MB", uploadedBy: "NGO Admin", date: "2024-04-01", version: 3, access: "admin", linked: "Compliance" },
@@ -80,7 +81,7 @@ const Documents = () => {
                 <button key={c.name} onClick={() => setFilterCategory(c.name)} className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${filterCategory === c.name ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>{c.name}</button>
               ))}
             </div>
-            <button className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
+            <button onClick={() => toast.success(`Exported ${filtered.length} document records`)} className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
               <Download className="w-3 h-3" /> Export
             </button>
           </div>
@@ -107,9 +108,9 @@ const Documents = () => {
                       </span>
                     </td>
                     <td>
-                      <div className="flex gap-1">
-                        <button className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="View"><Eye className="w-3.5 h-3.5 text-muted-foreground" /></button>
-                        <button className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="Download"><Download className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                       <div className="flex gap-1">
+                        <button onClick={() => toast.info(`Opening ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="View"><Eye className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                        <button onClick={() => toast.success(`Downloading ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="Download"><Download className="w-3.5 h-3.5 text-muted-foreground" /></button>
                       </div>
                     </td>
                   </tr>
@@ -137,7 +138,7 @@ const Documents = () => {
 
         {/* Level 4: Deep Research */}
         <DashboardSection level="deep" title="Document Intelligence" subtitle="Storage analytics and access patterns" icon={<Activity className="w-5 h-5 text-coral" />} defaultExpanded={false}>
-          <DeepResearchView title="Document Analytics" subtitle="Usage patterns and storage trends" onExport={() => {}}>
+          <DeepResearchView title="Document Analytics" subtitle="Usage patterns and storage trends" onExport={() => toast.success("Document analytics exported")}>
             <div className="grid grid-cols-3 gap-4">
               {[
                 { label: "Most Accessed", value: "Annual Report" },
