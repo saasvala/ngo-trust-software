@@ -20,6 +20,12 @@ import { Progress } from "@/components/ui/progress";
 export const CountryAdminDashboard = () => {
   const { location, formatCurrency } = useRules();
   const countryName = location.country?.countryName || "Country";
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const statePerformance = [
     { state: "Maharashtra", ngos: 12, donations: 18500000, compliance: 96, risk: 15 },
