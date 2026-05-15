@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { DashboardSection } from "../layers/DashboardSection";
 import { StatCard3D } from "../layers/StatCard3D";
 import { DeepResearchView } from "../layers/DeepResearchView";
 import { useRules } from "@/contexts/RuleContext";
+import { StatCardSkeleton } from "@/components/ui/loading";
 import {
   Globe,
   Users,
@@ -18,6 +20,12 @@ import { Progress } from "@/components/ui/progress";
 export const CountryAdminDashboard = () => {
   const { location, formatCurrency } = useRules();
   const countryName = location.country?.countryName || "Country";
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const statePerformance = [
     { state: "Maharashtra", ngos: 12, donations: 18500000, compliance: 96, risk: 15 },
@@ -30,12 +38,18 @@ export const CountryAdminDashboard = () => {
   return (
     <div className="space-y-8">
       <DashboardSection level="macro" title={`${countryName} Overview`} subtitle="Country-wide NGO network performance" icon={<Globe className="w-6 h-6 text-white" />}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard3D title="Total NGOs" value={41} icon={<Users className="w-6 h-6 text-white" />} iconBg="teal" change="Across 5 states" trend="up" />
-          <StatCard3D title="Total Donations" value="₹6.89Cr" icon={<TrendingUp className="w-6 h-6 text-white" />} iconBg="success" change="+18% YoY" trend="up" />
-          <StatCard3D title="Avg Compliance" value="90.2%" icon={<Shield className="w-6 h-6 text-white" />} iconBg="warning" change="Target: 95%" trend="neutral" />
-          <StatCard3D title="Risk Flags" value={8} icon={<AlertTriangle className="w-6 h-6 text-white" />} iconBg="coral" change="3 critical" trend="down" />
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard3D title="Total NGOs" value={41} icon={<Users className="w-6 h-6 text-white" />} iconBg="teal" change="Across 5 states" trend="up" />
+            <StatCard3D title="Total Donations" value="₹6.89Cr" icon={<TrendingUp className="w-6 h-6 text-white" />} iconBg="success" change="+18% YoY" trend="up" />
+            <StatCard3D title="Avg Compliance" value="90.2%" icon={<Shield className="w-6 h-6 text-white" />} iconBg="warning" change="Target: 95%" trend="neutral" />
+            <StatCard3D title="Risk Flags" value={8} icon={<AlertTriangle className="w-6 h-6 text-white" />} iconBg="coral" change="3 critical" trend="down" />
+          </div>
+        )}
       </DashboardSection>
 
       <DashboardSection level="micro" title="State-wise Performance" subtitle="NGO metrics aggregated by state" icon={<MapPin className="w-5 h-5 text-primary" />} defaultExpanded={true}>

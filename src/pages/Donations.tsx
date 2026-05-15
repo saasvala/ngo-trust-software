@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { TableSkeleton, EmptyState, StatCardSkeleton } from "@/components/ui/loading";
 import {
   Search, Plus, Receipt, CreditCard, Banknote, Smartphone,
   Building2, Globe, CheckCircle2, XCircle, Heart, Calendar,
@@ -361,17 +362,23 @@ const Donations = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { label: "Total Donations", value: donations.length, sub: "All time" },
-            { label: "Total Amount", value: `${currencySymbol}${donations.reduce((s, d) => s + Number(d.amount), 0).toLocaleString()}`, sub: "All time" },
-            { label: "Tax Eligible", value: donations.filter(d => d.tax_benefit_eligible).length, sub: "With 80G" },
-          ].map(s => (
-            <div key={s.label} className="glass-card p-4">
-              <p className="text-xs text-muted-foreground">{s.label}</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{s.value}</p>
-              <p className="text-xs text-muted-foreground">{s.sub}</p>
-            </div>
-          ))}
+          {loading ? (
+            <>
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </>
+          ) : (
+            [
+              { label: "Total Donations", value: donations.length, sub: "All time" },
+              { label: "Total Amount", value: `${currencySymbol}${donations.reduce((s, d) => s + Number(d.amount), 0).toLocaleString()}`, sub: "All time" },
+              { label: "Tax Eligible", value: donations.filter(d => d.tax_benefit_eligible).length, sub: "With 80G" },
+            ].map(s => (
+              <div key={s.label} className="glass-card p-4">
+                <p className="text-xs text-muted-foreground">{s.label}</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{s.value}</p>
+                <p className="text-xs text-muted-foreground">{s.sub}</p>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Donations Table */}
@@ -383,26 +390,30 @@ const Donations = () => {
             </button>
           </div>
           <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Donor</th>
-                  <th>Amount</th>
-                  <th>Mode</th>
-                  <th>Project</th>
-                  <th>Date</th>
-                  <th>Tax</th>
-                  <th>80G</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={8} className="text-center py-8 text-muted-foreground">Loading...</td></tr>
-                ) : filteredDonations.length === 0 ? (
-                  <tr><td colSpan={8} className="text-center py-8 text-muted-foreground">No donations found</td></tr>
-                ) : (
-                  filteredDonations.map(d => (
+            {loading ? (
+              <TableSkeleton rows={5} columns={8} />
+            ) : filteredDonations.length === 0 ? (
+              <EmptyState
+                icon={<Heart className="w-6 h-6 text-muted-foreground" />}
+                title="No donations found"
+                description="Record your first donation using the POS entry above."
+              />
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Donor</th>
+                    <th>Amount</th>
+                    <th>Mode</th>
+                    <th>Project</th>
+                    <th>Date</th>
+                    <th>Tax</th>
+                    <th>80G</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredDonations.map(d => (
                     <tr key={d.id}>
                       <td className="font-mono text-xs text-primary">{d.donation_number}</td>
                       <td className="font-medium text-foreground">{d.donors?.full_name || "Anonymous"}</td>
@@ -428,10 +439,10 @@ const Donations = () => {
                         )}
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
+import { StatCardSkeleton, EmptyState } from "@/components/ui/loading";
 import { Package, Laptop, Building, AlertTriangle, Activity, FileText } from "lucide-react";
 
 const assets = [
@@ -12,32 +14,59 @@ const assets = [
 ];
 
 const Assets = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <MainLayout title="Asset & Inventory" subtitle="Track organizational assets, assignments and maintenance">
       <div className="space-y-8">
         <DashboardSection level="macro" title="Asset Overview" subtitle="Organization-wide asset metrics" icon={<Package className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Total Assets" value={156} icon={<Package className="w-6 h-6 text-white" />} iconBg="primary" change="₹48L book value" trend="neutral" />
-            <StatCard3D title="IT Equipment" value={67} icon={<Laptop className="w-6 h-6 text-white" />} iconBg="teal" change="12 unassigned" trend="neutral" />
-            <StatCard3D title="Locations" value={5} icon={<Building className="w-6 h-6 text-white" />} iconBg="coral" change="Across 3 states" trend="neutral" />
-            <StatCard3D title="Under Maintenance" value={4} icon={<AlertTriangle className="w-6 h-6 text-white" />} iconBg="warning" change="2 overdue" trend="down" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Total Assets" value={156} icon={<Package className="w-6 h-6 text-white" />} iconBg="primary" change="₹48L book value" trend="neutral" />
+              <StatCard3D title="IT Equipment" value={67} icon={<Laptop className="w-6 h-6 text-white" />} iconBg="teal" change="12 unassigned" trend="neutral" />
+              <StatCard3D title="Locations" value={5} icon={<Building className="w-6 h-6 text-white" />} iconBg="coral" change="Across 3 states" trend="neutral" />
+              <StatCard3D title="Under Maintenance" value={4} icon={<AlertTriangle className="w-6 h-6 text-white" />} iconBg="warning" change="2 overdue" trend="down" />
+            </div>
+          )}
         </DashboardSection>
 
         <DashboardSection level="micro" title="Asset Register" subtitle="All tracked assets with status" icon={<FileText className="w-5 h-5 text-primary" />} defaultExpanded={true}>
-          <div className="space-y-3">
-            {assets.map((a, i) => (
-              <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
-                <div>
-                  <p className="text-sm font-medium text-foreground">{a.name}</p>
-                  <p className="text-xs text-muted-foreground">{a.category} · {a.location}{a.assignedTo ? ` · ${a.assignedTo}` : ''}</p>
+          {loading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 w-48 bg-muted rounded animate-pulse" />
+                    <div className="h-3 w-32 bg-muted rounded animate-pulse" />
+                  </div>
+                  <div className="h-6 w-20 rounded-full bg-muted animate-pulse" />
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${a.status === 'assigned' || a.status === 'in_use' ? 'bg-success/20 text-emerald-400' : a.status === 'available' ? 'bg-primary/20 text-primary' : 'bg-warning/20 text-warning'}`}>
-                  {a.status.replace('_', ' ')}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {assets.map((a, i) => (
+                <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{a.name}</p>
+                    <p className="text-xs text-muted-foreground">{a.category} · {a.location}{a.assignedTo ? ` · ${a.assignedTo}` : ''}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${a.status === 'assigned' || a.status === 'in_use' ? 'bg-success/20 text-emerald-400' : a.status === 'available' ? 'bg-primary/20 text-primary' : 'bg-warning/20 text-warning'}`}>
+                    {a.status.replace('_', ' ')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </DashboardSection>
 
         <DashboardSection level="nano" title="Category Breakdown" subtitle="Assets grouped by type" icon={<Package className="w-5 h-5 text-teal" />} defaultExpanded={false}>

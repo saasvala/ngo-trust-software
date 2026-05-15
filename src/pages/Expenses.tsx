@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
@@ -7,6 +7,7 @@ import { useRules } from "@/contexts/RuleContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { TableSkeleton, EmptyState, StatCardSkeleton } from "@/components/ui/loading";
 import {
   Receipt, Search, Plus, Clock, CheckCircle, XCircle, TrendingUp,
   AlertTriangle, FileText, Download, Filter, Upload, Activity, IndianRupee
@@ -38,6 +39,12 @@ const Expenses = () => {
   const currencySymbol = location.country?.currency.symbol || "₹";
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filtered = expenseData.filter(e => {
     const matchesSearch = e.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -56,12 +63,18 @@ const Expenses = () => {
       <div className="space-y-8">
         {/* Level 1: Macro */}
         <DashboardSection level="macro" title="Expense Overview" subtitle="Current period financial metrics" icon={<Receipt className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Total Expenses" value={totalExpenses} prefix={currencySymbol} icon={<Receipt className="w-6 h-6 text-white" />} iconBg="primary" change="This month" trend="up" />
-            <StatCard3D title="Approved" value={approved} prefix={currencySymbol} icon={<CheckCircle className="w-6 h-6 text-white" />} iconBg="success" change={`${expenseData.filter(e => e.status === "approved").length} items`} trend="up" />
-            <StatCard3D title="Pending Approval" value={pending} prefix={currencySymbol} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change={`${expenseData.filter(e => e.status === "pending").length} items`} trend="neutral" />
-            <StatCard3D title="Rejected" value={expenseData.filter(e => e.status === "rejected").length} icon={<XCircle className="w-6 h-6 text-white" />} iconBg="coral" change="This month" trend="down" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Total Expenses" value={totalExpenses} prefix={currencySymbol} icon={<Receipt className="w-6 h-6 text-white" />} iconBg="primary" change="This month" trend="up" />
+              <StatCard3D title="Approved" value={approved} prefix={currencySymbol} icon={<CheckCircle className="w-6 h-6 text-white" />} iconBg="success" change={`${expenseData.filter(e => e.status === "approved").length} items`} trend="up" />
+              <StatCard3D title="Pending Approval" value={pending} prefix={currencySymbol} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change={`${expenseData.filter(e => e.status === "pending").length} items`} trend="neutral" />
+              <StatCard3D title="Rejected" value={expenseData.filter(e => e.status === "rejected").length} icon={<XCircle className="w-6 h-6 text-white" />} iconBg="coral" change="This month" trend="down" />
+            </div>
+          )}
         </DashboardSection>
 
         {/* Level 2: Module View */}
@@ -86,49 +99,59 @@ const Expenses = () => {
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Description</th>
-                  <th>Category</th>
-                  <th>Project</th>
-                  <th>Amount</th>
-                  <th>Requested By</th>
-                  <th>Date</th>
-                  <th>Bill</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(e => (
-                  <tr key={e.id}>
-                    <td className="font-mono text-xs text-primary">{e.id}</td>
-                    <td className="font-medium text-foreground max-w-[200px] truncate">{e.description}</td>
-                    <td><span className="badge-primary">{e.category}</span></td>
-                    <td className="text-muted-foreground text-xs">{e.project}</td>
-                    <td className="font-semibold text-foreground">{currencySymbol}{e.amount.toLocaleString()}</td>
-                    <td className="text-muted-foreground text-xs">{e.requestedBy}</td>
-                    <td className="text-muted-foreground text-xs">{new Date(e.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</td>
-                    <td>{e.billAttached ? <Upload className="w-4 h-4 text-success" /> : <AlertTriangle className="w-4 h-4 text-warning" />}</td>
-                    <td>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${e.status === "approved" ? "bg-success/20 text-emerald-400" : e.status === "rejected" ? "bg-coral/20 text-coral" : "bg-warning/20 text-warning"}`}>
-                        {e.status}
-                      </span>
-                    </td>
-                    <td>
-                      {e.status === "pending" && (
-                        <div className="flex gap-1">
-                          <button onClick={() => toast.success(`${e.id} approved`)} className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors" title="Approve"><CheckCircle className="w-3.5 h-3.5 text-success" /></button>
-                          <button onClick={() => toast.error(`${e.id} rejected`)} className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors" title="Reject"><XCircle className="w-3.5 h-3.5 text-coral" /></button>
-                        </div>
-                      )}
-                    </td>
+            {loading ? (
+              <TableSkeleton rows={5} columns={10} />
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={<Receipt className="w-6 h-6 text-muted-foreground" />}
+                title="No expenses found"
+                description="Try adjusting your search or filters."
+              />
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Project</th>
+                    <th>Amount</th>
+                    <th>Requested By</th>
+                    <th>Date</th>
+                    <th>Bill</th>
+                    <th>Status</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map(e => (
+                    <tr key={e.id}>
+                      <td className="font-mono text-xs text-primary">{e.id}</td>
+                      <td className="font-medium text-foreground max-w-[200px] truncate">{e.description}</td>
+                      <td><span className="badge-primary">{e.category}</span></td>
+                      <td className="text-muted-foreground text-xs">{e.project}</td>
+                      <td className="font-semibold text-foreground">{currencySymbol}{e.amount.toLocaleString()}</td>
+                      <td className="text-muted-foreground text-xs">{e.requestedBy}</td>
+                      <td className="text-muted-foreground text-xs">{new Date(e.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</td>
+                      <td>{e.billAttached ? <Upload className="w-4 h-4 text-success" /> : <AlertTriangle className="w-4 h-4 text-warning" />}</td>
+                      <td>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${e.status === "approved" ? "bg-success/20 text-emerald-400" : e.status === "rejected" ? "bg-coral/20 text-coral" : "bg-warning/20 text-warning"}`}>
+                          {e.status}
+                        </span>
+                      </td>
+                      <td>
+                        {e.status === "pending" && (
+                          <div className="flex gap-1">
+                            <button onClick={() => toast.success(`${e.id} approved`)} className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors" title="Approve"><CheckCircle className="w-3.5 h-3.5 text-success" /></button>
+                            <button onClick={() => toast.error(`${e.id} rejected`)} className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors" title="Reject"><XCircle className="w-3.5 h-3.5 text-coral" /></button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </DashboardSection>
 

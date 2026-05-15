@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import { DashboardSection } from "../layers/DashboardSection";
 import { StatCard3D } from "../layers/StatCard3D";
 import { MicroPanel } from "../layers/MicroPanel";
 import { DeepResearchView } from "../layers/DeepResearchView";
 import { useRules } from "@/contexts/RuleContext";
+import { StatCardSkeleton, TableSkeleton } from "@/components/ui/loading";
 import { 
   Building2, 
   Users, 
@@ -17,6 +19,12 @@ import {
 export const NGOAdminDashboard = () => {
   const { formatCurrency, location } = useRules();
   const currencySymbol = location.country?.currency.symbol || "₹";
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -27,42 +35,48 @@ export const NGOAdminDashboard = () => {
         subtitle="Today's snapshot and key metrics"
         icon={<Building2 className="w-6 h-6 text-white" />}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard3D
-            title="Total Donations"
-            value={12400000}
-            prefix={currencySymbol}
-            icon={<Heart className="w-6 h-6 text-white" />}
-            iconBg="primary"
-            change="+18.2% vs last month"
-            trend="up"
-          />
-          <StatCard3D
-            title="Tax Deductible"
-            value={9850000}
-            prefix={currencySymbol}
-            icon={<Receipt className="w-6 h-6 text-white" />}
-            iconBg="teal"
-            change="79.4% of total"
-            trend="up"
-          />
-          <StatCard3D
-            title="Active Donors"
-            value={2847}
-            icon={<Users className="w-6 h-6 text-white" />}
-            iconBg="coral"
-            change="+142 new this month"
-            trend="up"
-          />
-          <StatCard3D
-            title="Active Projects"
-            value={12}
-            icon={<FolderKanban className="w-6 h-6 text-white" />}
-            iconBg="success"
-            change="3 completing soon"
-            trend="neutral"
-          />
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard3D
+              title="Total Donations"
+              value={12400000}
+              prefix={currencySymbol}
+              icon={<Heart className="w-6 h-6 text-white" />}
+              iconBg="primary"
+              change="+18.2% vs last month"
+              trend="up"
+            />
+            <StatCard3D
+              title="Tax Deductible"
+              value={9850000}
+              prefix={currencySymbol}
+              icon={<Receipt className="w-6 h-6 text-white" />}
+              iconBg="teal"
+              change="79.4% of total"
+              trend="up"
+            />
+            <StatCard3D
+              title="Active Donors"
+              value={2847}
+              icon={<Users className="w-6 h-6 text-white" />}
+              iconBg="coral"
+              change="+142 new this month"
+              trend="up"
+            />
+            <StatCard3D
+              title="Active Projects"
+              value={12}
+              icon={<FolderKanban className="w-6 h-6 text-white" />}
+              iconBg="success"
+              change="3 completing soon"
+              trend="neutral"
+            />
+          </div>
+        )}
       </DashboardSection>
 
       {/* MICRO LEVEL - Donation vs Utilization */}

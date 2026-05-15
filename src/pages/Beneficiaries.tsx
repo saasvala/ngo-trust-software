@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
 import { Input } from "@/components/ui/input";
+import { TableSkeleton, EmptyState, StatCardSkeleton } from "@/components/ui/loading";
 import {
   Users, Search, Heart, MapPin, GraduationCap, Baby,
   Activity, Download, FileText, UserCheck, TrendingUp, Shield
@@ -24,6 +25,12 @@ const beneficiaryData = [
 const Beneficiaries = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filtered = beneficiaryData.filter(b => {
     const matchesSearch = b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -40,12 +47,18 @@ const Beneficiaries = () => {
       <div className="space-y-8">
         {/* Level 1: Macro */}
         <DashboardSection level="macro" title="Beneficiary Overview" subtitle="Impact metrics and demographics" icon={<Users className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Total Beneficiaries" value={2847} icon={<Users className="w-6 h-6 text-white" />} iconBg="primary" change="+124 this quarter" trend="up" />
-            <StatCard3D title="Women & Girls" value={1623} icon={<Heart className="w-6 h-6 text-white" />} iconBg="coral" change="57% of total" trend="up" />
-            <StatCard3D title="Children (<18)" value={892} icon={<Baby className="w-6 h-6 text-white" />} iconBg="teal" change="31% of total" trend="up" />
-            <StatCard3D title="Districts Covered" value={14} icon={<MapPin className="w-6 h-6 text-white" />} iconBg="warning" change="Across 3 states" trend="neutral" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Total Beneficiaries" value={2847} icon={<Users className="w-6 h-6 text-white" />} iconBg="primary" change="+124 this quarter" trend="up" />
+              <StatCard3D title="Women & Girls" value={1623} icon={<Heart className="w-6 h-6 text-white" />} iconBg="coral" change="57% of total" trend="up" />
+              <StatCard3D title="Children (<18)" value={892} icon={<Baby className="w-6 h-6 text-white" />} iconBg="teal" change="31% of total" trend="up" />
+              <StatCard3D title="Districts Covered" value={14} icon={<MapPin className="w-6 h-6 text-white" />} iconBg="warning" change="Across 3 states" trend="neutral" />
+            </div>
+          )}
         </DashboardSection>
 
         {/* Level 2: Module View */}
@@ -66,30 +79,40 @@ const Beneficiaries = () => {
             </button>
           </div>
           <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Category</th><th>Project</th><th>Village</th><th>District</th><th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(b => (
-                  <tr key={b.id}>
-                    <td className="font-mono text-xs text-primary">{b.id}</td>
-                    <td className="font-medium text-foreground">{b.name}</td>
-                    <td className="text-muted-foreground">{b.age}</td>
-                    <td className="text-muted-foreground">{b.gender}</td>
-                    <td><span className="badge-primary">{b.category}</span></td>
-                    <td className="text-muted-foreground text-xs">{b.project}</td>
-                    <td className="text-muted-foreground text-xs">{b.village}</td>
-                    <td className="text-muted-foreground text-xs">{b.district}</td>
-                    <td>
-                      <span className={b.status === "active" ? "badge-success" : "badge-warning"}>{b.status}</span>
-                    </td>
+            {loading ? (
+              <TableSkeleton rows={5} columns={9} />
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={<Users className="w-6 h-6 text-muted-foreground" />}
+                title="No beneficiaries found"
+                description="Try adjusting your search filters."
+              />
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Category</th><th>Project</th><th>Village</th><th>District</th><th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map(b => (
+                    <tr key={b.id}>
+                      <td className="font-mono text-xs text-primary">{b.id}</td>
+                      <td className="font-medium text-foreground">{b.name}</td>
+                      <td className="text-muted-foreground">{b.age}</td>
+                      <td className="text-muted-foreground">{b.gender}</td>
+                      <td><span className="badge-primary">{b.category}</span></td>
+                      <td className="text-muted-foreground text-xs">{b.project}</td>
+                      <td className="text-muted-foreground text-xs">{b.village}</td>
+                      <td className="text-muted-foreground text-xs">{b.district}</td>
+                      <td>
+                        <span className={b.status === "active" ? "badge-success" : "badge-warning"}>{b.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </DashboardSection>
 

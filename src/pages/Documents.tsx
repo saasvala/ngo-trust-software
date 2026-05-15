@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
 import { Input } from "@/components/ui/input";
+import { TableSkeleton, EmptyState, StatCardSkeleton } from "@/components/ui/loading";
 import {
   FileText, Search, FolderOpen, Upload, Download, Clock,
   Shield, Activity, Lock, Eye, File, Image, FileSpreadsheet
@@ -47,6 +48,12 @@ const getFileIcon = (type: string) => {
 const Documents = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filtered = documentData.filter(d => {
     const matchesSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -60,12 +67,18 @@ const Documents = () => {
       <div className="space-y-8">
         {/* Level 1: Macro */}
         <DashboardSection level="macro" title="Document Overview" subtitle="Organization-wide document metrics" icon={<FileText className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Total Documents" value={documentData.length * 12} icon={<FileText className="w-6 h-6 text-white" />} iconBg="primary" change="Across all categories" trend="neutral" />
-            <StatCard3D title="Categories" value={categories.length} icon={<FolderOpen className="w-6 h-6 text-white" />} iconBg="teal" change="Organized folders" trend="neutral" />
-            <StatCard3D title="Total Size" value={82} suffix=" MB" icon={<Upload className="w-6 h-6 text-white" />} iconBg="coral" change="Storage used" trend="up" />
-            <StatCard3D title="Versions Tracked" value={16} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change="With full history" trend="neutral" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Total Documents" value={documentData.length * 12} icon={<FileText className="w-6 h-6 text-white" />} iconBg="primary" change="Across all categories" trend="neutral" />
+              <StatCard3D title="Categories" value={categories.length} icon={<FolderOpen className="w-6 h-6 text-white" />} iconBg="teal" change="Organized folders" trend="neutral" />
+              <StatCard3D title="Total Size" value={82} suffix=" MB" icon={<Upload className="w-6 h-6 text-white" />} iconBg="coral" change="Storage used" trend="up" />
+              <StatCard3D title="Versions Tracked" value={16} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change="With full history" trend="neutral" />
+            </div>
+          )}
         </DashboardSection>
 
         {/* Level 2: Document Browser */}
@@ -86,37 +99,47 @@ const Documents = () => {
             </button>
           </div>
           <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>File</th><th>Name</th><th>Category</th><th>Size</th><th>Uploaded By</th><th>Date</th><th>Ver</th><th>Access</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(d => (
-                  <tr key={d.id}>
-                    <td>{getFileIcon(d.type)}</td>
-                    <td className="font-medium text-foreground max-w-[220px] truncate">{d.name}</td>
-                    <td><span className="badge-primary">{d.category}</span></td>
-                    <td className="text-muted-foreground text-xs">{d.size}</td>
-                    <td className="text-muted-foreground text-xs">{d.uploadedBy}</td>
-                    <td className="text-muted-foreground text-xs">{new Date(d.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "2-digit" })}</td>
-                    <td className="text-center"><span className="px-1.5 py-0.5 rounded bg-secondary text-xs text-muted-foreground">v{d.version}</span></td>
-                    <td>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${d.access === "admin" ? "bg-coral/20 text-coral" : d.access === "finance" ? "bg-warning/20 text-warning" : "bg-success/20 text-emerald-400"}`}>
-                        {d.access}
-                      </span>
-                    </td>
-                    <td>
-                       <div className="flex gap-1">
-                        <button onClick={() => toast.info(`Opening ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="View"><Eye className="w-3.5 h-3.5 text-muted-foreground" /></button>
-                        <button onClick={() => toast.success(`Downloading ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="Download"><Download className="w-3.5 h-3.5 text-muted-foreground" /></button>
-                      </div>
-                    </td>
+            {loading ? (
+              <TableSkeleton rows={5} columns={9} />
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={<FileText className="w-6 h-6 text-muted-foreground" />}
+                title="No documents found"
+                description="Try adjusting your search or category filters."
+              />
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>File</th><th>Name</th><th>Category</th><th>Size</th><th>Uploaded By</th><th>Date</th><th>Ver</th><th>Access</th><th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map(d => (
+                    <tr key={d.id}>
+                      <td>{getFileIcon(d.type)}</td>
+                      <td className="font-medium text-foreground max-w-[220px] truncate">{d.name}</td>
+                      <td><span className="badge-primary">{d.category}</span></td>
+                      <td className="text-muted-foreground text-xs">{d.size}</td>
+                      <td className="text-muted-foreground text-xs">{d.uploadedBy}</td>
+                      <td className="text-muted-foreground text-xs">{new Date(d.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "2-digit" })}</td>
+                      <td className="text-center"><span className="px-1.5 py-0.5 rounded bg-secondary text-xs text-muted-foreground">v{d.version}</span></td>
+                      <td>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${d.access === "admin" ? "bg-coral/20 text-coral" : d.access === "finance" ? "bg-warning/20 text-warning" : "bg-success/20 text-emerald-400"}`}>
+                          {d.access}
+                        </span>
+                      </td>
+                      <td>
+                         <div className="flex gap-1">
+                          <button onClick={() => toast.info(`Opening ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="View"><Eye className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                          <button onClick={() => toast.success(`Downloading ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="Download"><Download className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </DashboardSection>
 

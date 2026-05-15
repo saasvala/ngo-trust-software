@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
 import { useRules } from "@/contexts/RuleContext";
+import { StatCardSkeleton, EmptyState } from "@/components/ui/loading";
 import {
   FileBarChart, Download, FileText, TrendingUp, Users, FolderKanban,
   Receipt, Shield, Landmark, Activity, Calendar, Printer
@@ -33,6 +34,12 @@ const Reports = () => {
   const { location } = useRules();
   const currencySymbol = location.country?.currency.symbol || "₹";
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const categories = [...new Set(reportTypes.map(r => r.category))];
   const filteredReports = selectedCategory === "all" ? reportTypes : reportTypes.filter(r => r.category === selectedCategory);
@@ -42,12 +49,18 @@ const Reports = () => {
       <div className="space-y-8">
         {/* Level 1: Macro */}
         <DashboardSection level="macro" title="Report Center" subtitle="Report generation and analytics overview" icon={<FileBarChart className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Report Types" value={8} icon={<FileBarChart className="w-6 h-6 text-white" />} iconBg="primary" change="All categories" trend="neutral" />
-            <StatCard3D title="Generated This Month" value={23} icon={<FileText className="w-6 h-6 text-white" />} iconBg="teal" change="+8 vs last month" trend="up" />
-            <StatCard3D title="Scheduled Reports" value={5} icon={<Calendar className="w-6 h-6 text-white" />} iconBg="coral" change="Auto-generated" trend="neutral" />
-            <StatCard3D title="Export Formats" value={3} icon={<Download className="w-6 h-6 text-white" />} iconBg="warning" change="PDF · Excel · JSON" trend="neutral" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Report Types" value={8} icon={<FileBarChart className="w-6 h-6 text-white" />} iconBg="primary" change="All categories" trend="neutral" />
+              <StatCard3D title="Generated This Month" value={23} icon={<FileText className="w-6 h-6 text-white" />} iconBg="teal" change="+8 vs last month" trend="up" />
+              <StatCard3D title="Scheduled Reports" value={5} icon={<Calendar className="w-6 h-6 text-white" />} iconBg="coral" change="Auto-generated" trend="neutral" />
+              <StatCard3D title="Export Formats" value={3} icon={<Download className="w-6 h-6 text-white" />} iconBg="warning" change="PDF · Excel · JSON" trend="neutral" />
+            </div>
+          )}
         </DashboardSection>
 
         {/* Level 2: Report Types */}
