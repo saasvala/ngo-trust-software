@@ -34,6 +34,12 @@ const Reports = () => {
   const { location } = useRules();
   const currencySymbol = location.country?.currency.symbol || "₹";
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const categories = [...new Set(reportTypes.map(r => r.category))];
   const filteredReports = selectedCategory === "all" ? reportTypes : reportTypes.filter(r => r.category === selectedCategory);
