@@ -33,41 +33,47 @@ export const SuperAdminDashboard = () => {
         subtitle="Real-time metrics across all countries and NGOs"
         icon={<Globe className="w-6 h-6 text-white" />}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard3D
-            title="Total Countries"
-            value={5}
-            icon={<Globe className="w-6 h-6 text-white" />}
-            iconBg="primary"
-            change="+1 this year"
-            trend="up"
-          />
-          <StatCard3D
-            title="Active NGOs"
-            value={247}
-            icon={<Building2 className="w-6 h-6 text-white" />}
-            iconBg="teal"
-            change="+23 this month"
-            trend="up"
-          />
-          <StatCard3D
-            title="Total Beneficiaries"
-            value={1250000}
-            icon={<Users className="w-6 h-6 text-white" />}
-            iconBg="coral"
-            change="+8.5%"
-            trend="up"
-          />
-          <StatCard3D
-            title="Global Donations"
-            value={4500000000}
-            prefix="$"
-            icon={<TrendingUp className="w-6 h-6 text-white" />}
-            iconBg="success"
-            change="+15.2% YoY"
-            trend="up"
-          />
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard3D
+              title="Total Countries"
+              value={5}
+              icon={<Globe className="w-6 h-6 text-white" />}
+              iconBg="primary"
+              change="+1 this year"
+              trend="up"
+            />
+            <StatCard3D
+              title="Active NGOs"
+              value={247}
+              icon={<Building2 className="w-6 h-6 text-white" />}
+              iconBg="teal"
+              change="+23 this month"
+              trend="up"
+            />
+            <StatCard3D
+              title="Total Beneficiaries"
+              value={1250000}
+              icon={<Users className="w-6 h-6 text-white" />}
+              iconBg="coral"
+              change="+8.5%"
+              trend="up"
+            />
+            <StatCard3D
+              title="Global Donations"
+              value={4500000000}
+              prefix="$"
+              icon={<TrendingUp className="w-6 h-6 text-white" />}
+              iconBg="success"
+              change="+15.2% YoY"
+              trend="up"
+            />
+          </div>
+        )}
       </DashboardSection>
 
       {/* MICRO LEVEL - Country Breakdown */}
