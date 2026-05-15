@@ -67,12 +67,18 @@ const Documents = () => {
       <div className="space-y-8">
         {/* Level 1: Macro */}
         <DashboardSection level="macro" title="Document Overview" subtitle="Organization-wide document metrics" icon={<FileText className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Total Documents" value={documentData.length * 12} icon={<FileText className="w-6 h-6 text-white" />} iconBg="primary" change="Across all categories" trend="neutral" />
-            <StatCard3D title="Categories" value={categories.length} icon={<FolderOpen className="w-6 h-6 text-white" />} iconBg="teal" change="Organized folders" trend="neutral" />
-            <StatCard3D title="Total Size" value={82} suffix=" MB" icon={<Upload className="w-6 h-6 text-white" />} iconBg="coral" change="Storage used" trend="up" />
-            <StatCard3D title="Versions Tracked" value={16} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change="With full history" trend="neutral" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Total Documents" value={documentData.length * 12} icon={<FileText className="w-6 h-6 text-white" />} iconBg="primary" change="Across all categories" trend="neutral" />
+              <StatCard3D title="Categories" value={categories.length} icon={<FolderOpen className="w-6 h-6 text-white" />} iconBg="teal" change="Organized folders" trend="neutral" />
+              <StatCard3D title="Total Size" value={82} suffix=" MB" icon={<Upload className="w-6 h-6 text-white" />} iconBg="coral" change="Storage used" trend="up" />
+              <StatCard3D title="Versions Tracked" value={16} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change="With full history" trend="neutral" />
+            </div>
+          )}
         </DashboardSection>
 
         {/* Level 2: Document Browser */}
