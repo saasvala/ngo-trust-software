@@ -79,30 +79,40 @@ const Beneficiaries = () => {
             </button>
           </div>
           <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Category</th><th>Project</th><th>Village</th><th>District</th><th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(b => (
-                  <tr key={b.id}>
-                    <td className="font-mono text-xs text-primary">{b.id}</td>
-                    <td className="font-medium text-foreground">{b.name}</td>
-                    <td className="text-muted-foreground">{b.age}</td>
-                    <td className="text-muted-foreground">{b.gender}</td>
-                    <td><span className="badge-primary">{b.category}</span></td>
-                    <td className="text-muted-foreground text-xs">{b.project}</td>
-                    <td className="text-muted-foreground text-xs">{b.village}</td>
-                    <td className="text-muted-foreground text-xs">{b.district}</td>
-                    <td>
-                      <span className={b.status === "active" ? "badge-success" : "badge-warning"}>{b.status}</span>
-                    </td>
+            {loading ? (
+              <TableSkeleton rows={5} columns={9} />
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={<Users className="w-6 h-6 text-muted-foreground" />}
+                title="No beneficiaries found"
+                description="Try adjusting your search filters."
+              />
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Category</th><th>Project</th><th>Village</th><th>District</th><th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map(b => (
+                    <tr key={b.id}>
+                      <td className="font-mono text-xs text-primary">{b.id}</td>
+                      <td className="font-medium text-foreground">{b.name}</td>
+                      <td className="text-muted-foreground">{b.age}</td>
+                      <td className="text-muted-foreground">{b.gender}</td>
+                      <td><span className="badge-primary">{b.category}</span></td>
+                      <td className="text-muted-foreground text-xs">{b.project}</td>
+                      <td className="text-muted-foreground text-xs">{b.village}</td>
+                      <td className="text-muted-foreground text-xs">{b.district}</td>
+                      <td>
+                        <span className={b.status === "active" ? "badge-success" : "badge-warning"}>{b.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </DashboardSection>
 
