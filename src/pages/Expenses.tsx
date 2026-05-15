@@ -99,49 +99,59 @@ const Expenses = () => {
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Description</th>
-                  <th>Category</th>
-                  <th>Project</th>
-                  <th>Amount</th>
-                  <th>Requested By</th>
-                  <th>Date</th>
-                  <th>Bill</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(e => (
-                  <tr key={e.id}>
-                    <td className="font-mono text-xs text-primary">{e.id}</td>
-                    <td className="font-medium text-foreground max-w-[200px] truncate">{e.description}</td>
-                    <td><span className="badge-primary">{e.category}</span></td>
-                    <td className="text-muted-foreground text-xs">{e.project}</td>
-                    <td className="font-semibold text-foreground">{currencySymbol}{e.amount.toLocaleString()}</td>
-                    <td className="text-muted-foreground text-xs">{e.requestedBy}</td>
-                    <td className="text-muted-foreground text-xs">{new Date(e.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</td>
-                    <td>{e.billAttached ? <Upload className="w-4 h-4 text-success" /> : <AlertTriangle className="w-4 h-4 text-warning" />}</td>
-                    <td>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${e.status === "approved" ? "bg-success/20 text-emerald-400" : e.status === "rejected" ? "bg-coral/20 text-coral" : "bg-warning/20 text-warning"}`}>
-                        {e.status}
-                      </span>
-                    </td>
-                    <td>
-                      {e.status === "pending" && (
-                        <div className="flex gap-1">
-                          <button onClick={() => toast.success(`${e.id} approved`)} className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors" title="Approve"><CheckCircle className="w-3.5 h-3.5 text-success" /></button>
-                          <button onClick={() => toast.error(`${e.id} rejected`)} className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors" title="Reject"><XCircle className="w-3.5 h-3.5 text-coral" /></button>
-                        </div>
-                      )}
-                    </td>
+            {loading ? (
+              <TableSkeleton rows={5} columns={10} />
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={<Receipt className="w-6 h-6 text-muted-foreground" />}
+                title="No expenses found"
+                description="Try adjusting your search or filters."
+              />
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Project</th>
+                    <th>Amount</th>
+                    <th>Requested By</th>
+                    <th>Date</th>
+                    <th>Bill</th>
+                    <th>Status</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map(e => (
+                    <tr key={e.id}>
+                      <td className="font-mono text-xs text-primary">{e.id}</td>
+                      <td className="font-medium text-foreground max-w-[200px] truncate">{e.description}</td>
+                      <td><span className="badge-primary">{e.category}</span></td>
+                      <td className="text-muted-foreground text-xs">{e.project}</td>
+                      <td className="font-semibold text-foreground">{currencySymbol}{e.amount.toLocaleString()}</td>
+                      <td className="text-muted-foreground text-xs">{e.requestedBy}</td>
+                      <td className="text-muted-foreground text-xs">{new Date(e.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</td>
+                      <td>{e.billAttached ? <Upload className="w-4 h-4 text-success" /> : <AlertTriangle className="w-4 h-4 text-warning" />}</td>
+                      <td>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${e.status === "approved" ? "bg-success/20 text-emerald-400" : e.status === "rejected" ? "bg-coral/20 text-coral" : "bg-warning/20 text-warning"}`}>
+                          {e.status}
+                        </span>
+                      </td>
+                      <td>
+                        {e.status === "pending" && (
+                          <div className="flex gap-1">
+                            <button onClick={() => toast.success(`${e.id} approved`)} className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors" title="Approve"><CheckCircle className="w-3.5 h-3.5 text-success" /></button>
+                            <button onClick={() => toast.error(`${e.id} rejected`)} className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors" title="Reject"><XCircle className="w-3.5 h-3.5 text-coral" /></button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </DashboardSection>
 
