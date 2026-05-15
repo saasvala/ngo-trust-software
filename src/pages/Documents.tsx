@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
 import { Input } from "@/components/ui/input";
+import { TableSkeleton, EmptyState, StatCardSkeleton } from "@/components/ui/loading";
 import {
   FileText, Search, FolderOpen, Upload, Download, Clock,
   Shield, Activity, Lock, Eye, File, Image, FileSpreadsheet
