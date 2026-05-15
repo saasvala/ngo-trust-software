@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
+import { TableSkeleton, EmptyState, StatCardSkeleton } from "@/components/ui/loading";
 import {
   Search, Plus, FolderKanban, Calendar, TrendingUp,
   Pause, CheckCircle2, Clock, PlayCircle, IndianRupee
