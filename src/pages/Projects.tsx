@@ -169,31 +169,63 @@ const Projects = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="glass-card p-4">
-            <p className="text-xs text-muted-foreground">Total Projects</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{projects.length}</p>
-            <p className="text-xs text-muted-foreground">{projects.filter(p => p.status === "active").length} active</p>
-          </div>
-          <div className="glass-card p-4">
-            <p className="text-xs text-muted-foreground">Total Budget</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{currencySymbol}{totalBudget.toLocaleString()}</p>
-          </div>
-          <div className="glass-card p-4">
-            <p className="text-xs text-muted-foreground">Total Spent</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{currencySymbol}{totalSpent.toLocaleString()}</p>
-          </div>
-          <div className="glass-card p-4">
-            <p className="text-xs text-muted-foreground">Utilization</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{utilizationPct}%</p>
-            <Progress value={utilizationPct} className="mt-2 h-1.5" />
-          </div>
+          {loading ? (
+            <>
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <div className="glass-card p-4">
+                <p className="text-xs text-muted-foreground">Total Projects</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{projects.length}</p>
+                <p className="text-xs text-muted-foreground">{projects.filter(p => p.status === "active").length} active</p>
+              </div>
+              <div className="glass-card p-4">
+                <p className="text-xs text-muted-foreground">Total Budget</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{currencySymbol}{totalBudget.toLocaleString()}</p>
+              </div>
+              <div className="glass-card p-4">
+                <p className="text-xs text-muted-foreground">Total Spent</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{currencySymbol}{totalSpent.toLocaleString()}</p>
+              </div>
+              <div className="glass-card p-4">
+                <p className="text-xs text-muted-foreground">Utilization</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{utilizationPct}%</p>
+                <Progress value={utilizationPct} className="mt-2 h-1.5" />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Project Cards */}
         {loading ? (
-          <div className="text-center py-12 text-muted-foreground">Loading projects...</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="glass-card p-5 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-muted animate-pulse" />
+                    <div className="space-y-2">
+                      <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+                      <div className="h-3 w-24 bg-muted rounded animate-pulse" />
+                    </div>
+                  </div>
+                  <div className="h-5 w-16 rounded-full bg-muted animate-pulse" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 w-full bg-muted rounded animate-pulse" />
+                  <div className="h-2 w-full bg-muted rounded-full animate-pulse" />
+                </div>
+                <div className="h-3 w-3/4 bg-muted rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="glass-card p-8 text-center text-muted-foreground">No projects found</div>
+          <EmptyState
+            icon={<FolderKanban className="w-6 h-6 text-muted-foreground" />}
+            title="No projects found"
+            description="Try adjusting your search or create a new project."
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map(project => {
