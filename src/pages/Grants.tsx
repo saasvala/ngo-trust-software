@@ -1,9 +1,10 @@
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
+import { StatCardSkeleton } from "@/components/ui/loading";
 import { Landmark, FileText, Clock, CheckCircle, TrendingUp, Activity, Target, ArrowRight } from "lucide-react";
-
 const grants = [
   { name: "UNICEF Water & Sanitation", amount: 5000000, status: "active", utilization: 64, period: "2024-2026", stage: "Milestone Released" },
   { name: "State Education Grant", amount: 1200000, status: "active", utilization: 82, period: "2025-2026", stage: "Funded" },
