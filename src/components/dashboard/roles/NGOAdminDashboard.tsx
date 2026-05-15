@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import { DashboardSection } from "../layers/DashboardSection";
 import { StatCard3D } from "../layers/StatCard3D";
 import { MicroPanel } from "../layers/MicroPanel";
 import { DeepResearchView } from "../layers/DeepResearchView";
 import { useRules } from "@/contexts/RuleContext";
+import { StatCardSkeleton, TableSkeleton } from "@/components/ui/loading";
 import { 
   Building2, 
   Users, 
