@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { TableSkeleton, EmptyState } from "@/components/ui/loading";
 import { Search, Plus, Users, Phone, Mail, CreditCard, Building2, User, UserCheck } from "lucide-react";
 
 interface Donor {
@@ -155,41 +156,64 @@ const Donors = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="glass-card p-4">
-            <p className="text-xs text-muted-foreground">Total Donors</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{donors.length}</p>
-          </div>
-          <div className="glass-card p-4">
-            <p className="text-xs text-muted-foreground">Individual</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{donors.filter(d => d.donor_type === "individual").length}</p>
-          </div>
-          <div className="glass-card p-4">
-            <p className="text-xs text-muted-foreground">Corporate / CSR</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{donors.filter(d => ["corporate", "csr"].includes(d.donor_type)).length}</p>
-          </div>
+          {loading ? (
+            <>
+              <div className="glass-card p-4 space-y-2">
+                <div className="h-3 w-24 bg-muted rounded animate-pulse" />
+                <div className="h-8 w-16 bg-muted rounded animate-pulse" />
+              </div>
+              <div className="glass-card p-4 space-y-2">
+                <div className="h-3 w-24 bg-muted rounded animate-pulse" />
+                <div className="h-8 w-16 bg-muted rounded animate-pulse" />
+              </div>
+              <div className="glass-card p-4 space-y-2">
+                <div className="h-3 w-24 bg-muted rounded animate-pulse" />
+                <div className="h-8 w-16 bg-muted rounded animate-pulse" />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="glass-card p-4">
+                <p className="text-xs text-muted-foreground">Total Donors</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{donors.length}</p>
+              </div>
+              <div className="glass-card p-4">
+                <p className="text-xs text-muted-foreground">Individual</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{donors.filter(d => d.donor_type === "individual").length}</p>
+              </div>
+              <div className="glass-card p-4">
+                <p className="text-xs text-muted-foreground">Corporate / CSR</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{donors.filter(d => ["corporate", "csr"].includes(d.donor_type)).length}</p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Table */}
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>Contact</th>
-                  <th>PAN</th>
-                  <th>Location</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</td></tr>
-                ) : filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">No donors found</td></tr>
-                ) : (
-                  filtered.map(d => (
+            {loading ? (
+              <TableSkeleton rows={5} columns={6} />
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={<Users className="w-6 h-6 text-muted-foreground" />}
+                title="No donors found"
+                description="Try adjusting your search or add a new donor."
+              />
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Contact</th>
+                    <th>PAN</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(d => (
                     <tr key={d.id}>
                       <td className="font-medium text-foreground flex items-center gap-2">
                         {getTypeIcon(d.donor_type)}
@@ -204,10 +228,10 @@ const Donors = () => {
                       <td className="text-muted-foreground text-xs">{[d.city, d.state].filter(Boolean).join(", ") || "—"}</td>
                       <td>{d.is_active ? <span className="badge-success">Active</span> : <span className="badge-warning">Inactive</span>}</td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
