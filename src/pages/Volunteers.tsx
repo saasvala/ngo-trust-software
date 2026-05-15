@@ -45,12 +45,18 @@ const Volunteers = () => {
       <div className="space-y-8">
         {/* Level 1: Macro */}
         <DashboardSection level="macro" title="Team Overview" subtitle="Organizational human resources" icon={<Users className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Total Team" value={42} icon={<Users className="w-6 h-6 text-white" />} iconBg="primary" change="Across all locations" trend="neutral" />
-            <StatCard3D title="Full-time Staff" value={28} icon={<Briefcase className="w-6 h-6 text-white" />} iconBg="teal" change="67% of team" trend="up" />
-            <StatCard3D title="Volunteers" value={11} icon={<UserCheck className="w-6 h-6 text-white" />} iconBg="coral" change="+3 this quarter" trend="up" />
-            <StatCard3D title="Field Locations" value={6} icon={<MapPin className="w-6 h-6 text-white" />} iconBg="warning" change="3 states" trend="neutral" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Total Team" value={42} icon={<Users className="w-6 h-6 text-white" />} iconBg="primary" change="Across all locations" trend="neutral" />
+              <StatCard3D title="Full-time Staff" value={28} icon={<Briefcase className="w-6 h-6 text-white" />} iconBg="teal" change="67% of team" trend="up" />
+              <StatCard3D title="Volunteers" value={11} icon={<UserCheck className="w-6 h-6 text-white" />} iconBg="coral" change="+3 this quarter" trend="up" />
+              <StatCard3D title="Field Locations" value={6} icon={<MapPin className="w-6 h-6 text-white" />} iconBg="warning" change="3 states" trend="neutral" />
+            </div>
+          )}
         </DashboardSection>
 
         {/* Level 2: Team Register */}
