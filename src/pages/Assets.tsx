@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
+import { StatCardSkeleton, EmptyState } from "@/components/ui/loading";
 import { Package, Laptop, Building, AlertTriangle, Activity, FileText } from "lucide-react";
 
 const assets = [
