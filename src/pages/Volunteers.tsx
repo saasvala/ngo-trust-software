@@ -78,27 +78,37 @@ const Volunteers = () => {
             </button>
           </div>
           <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th><th>Name</th><th>Role</th><th>Department</th><th>Location</th><th>Type</th><th>Projects</th><th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(s => (
-                  <tr key={s.id}>
-                    <td className="font-mono text-xs text-primary">{s.id}</td>
-                    <td className="font-medium text-foreground">{s.name}</td>
-                    <td className="text-muted-foreground text-xs">{s.role}</td>
-                    <td className="text-muted-foreground text-xs">{s.department}</td>
-                    <td className="text-muted-foreground text-xs">{s.location}</td>
-                    <td><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${s.type === "staff" ? "bg-primary/20 text-purple-400" : s.type === "volunteer" ? "bg-teal/20 text-teal" : "bg-coral/20 text-coral"}`}>{s.type}</span></td>
-                    <td className="text-muted-foreground">{s.projects}</td>
-                    <td><span className={s.status === "active" ? "badge-success" : "badge-warning"}>{s.status.replace("_", " ")}</span></td>
+            {loading ? (
+              <TableSkeleton rows={5} columns={8} />
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={<Users className="w-6 h-6 text-muted-foreground" />}
+                title="No team members found"
+                description="Try adjusting your search filters."
+              />
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Name</th><th>Role</th><th>Department</th><th>Location</th><th>Type</th><th>Projects</th><th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map(s => (
+                    <tr key={s.id}>
+                      <td className="font-mono text-xs text-primary">{s.id}</td>
+                      <td className="font-medium text-foreground">{s.name}</td>
+                      <td className="text-muted-foreground text-xs">{s.role}</td>
+                      <td className="text-muted-foreground text-xs">{s.department}</td>
+                      <td className="text-muted-foreground text-xs">{s.location}</td>
+                      <td><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${s.type === "staff" ? "bg-primary/20 text-purple-400" : s.type === "volunteer" ? "bg-teal/20 text-teal" : "bg-coral/20 text-coral"}`}>{s.type}</span></td>
+                      <td className="text-muted-foreground">{s.projects}</td>
+                      <td><span className={s.status === "active" ? "badge-success" : "badge-warning"}>{s.status.replace("_", " ")}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </DashboardSection>
 
