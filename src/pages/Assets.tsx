@@ -14,16 +14,29 @@ const assets = [
 ];
 
 const Assets = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <MainLayout title="Asset & Inventory" subtitle="Track organizational assets, assignments and maintenance">
       <div className="space-y-8">
         <DashboardSection level="macro" title="Asset Overview" subtitle="Organization-wide asset metrics" icon={<Package className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Total Assets" value={156} icon={<Package className="w-6 h-6 text-white" />} iconBg="primary" change="₹48L book value" trend="neutral" />
-            <StatCard3D title="IT Equipment" value={67} icon={<Laptop className="w-6 h-6 text-white" />} iconBg="teal" change="12 unassigned" trend="neutral" />
-            <StatCard3D title="Locations" value={5} icon={<Building className="w-6 h-6 text-white" />} iconBg="coral" change="Across 3 states" trend="neutral" />
-            <StatCard3D title="Under Maintenance" value={4} icon={<AlertTriangle className="w-6 h-6 text-white" />} iconBg="warning" change="2 overdue" trend="down" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Total Assets" value={156} icon={<Package className="w-6 h-6 text-white" />} iconBg="primary" change="₹48L book value" trend="neutral" />
+              <StatCard3D title="IT Equipment" value={67} icon={<Laptop className="w-6 h-6 text-white" />} iconBg="teal" change="12 unassigned" trend="neutral" />
+              <StatCard3D title="Locations" value={5} icon={<Building className="w-6 h-6 text-white" />} iconBg="coral" change="Across 3 states" trend="neutral" />
+              <StatCard3D title="Under Maintenance" value={4} icon={<AlertTriangle className="w-6 h-6 text-white" />} iconBg="warning" change="2 overdue" trend="down" />
+            </div>
+          )}
         </DashboardSection>
 
         <DashboardSection level="micro" title="Asset Register" subtitle="All tracked assets with status" icon={<FileText className="w-5 h-5 text-primary" />} defaultExpanded={true}>
