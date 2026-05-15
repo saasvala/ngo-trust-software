@@ -49,12 +49,18 @@ const Reports = () => {
       <div className="space-y-8">
         {/* Level 1: Macro */}
         <DashboardSection level="macro" title="Report Center" subtitle="Report generation and analytics overview" icon={<FileBarChart className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Report Types" value={8} icon={<FileBarChart className="w-6 h-6 text-white" />} iconBg="primary" change="All categories" trend="neutral" />
-            <StatCard3D title="Generated This Month" value={23} icon={<FileText className="w-6 h-6 text-white" />} iconBg="teal" change="+8 vs last month" trend="up" />
-            <StatCard3D title="Scheduled Reports" value={5} icon={<Calendar className="w-6 h-6 text-white" />} iconBg="coral" change="Auto-generated" trend="neutral" />
-            <StatCard3D title="Export Formats" value={3} icon={<Download className="w-6 h-6 text-white" />} iconBg="warning" change="PDF · Excel · JSON" trend="neutral" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Report Types" value={8} icon={<FileBarChart className="w-6 h-6 text-white" />} iconBg="primary" change="All categories" trend="neutral" />
+              <StatCard3D title="Generated This Month" value={23} icon={<FileText className="w-6 h-6 text-white" />} iconBg="teal" change="+8 vs last month" trend="up" />
+              <StatCard3D title="Scheduled Reports" value={5} icon={<Calendar className="w-6 h-6 text-white" />} iconBg="coral" change="Auto-generated" trend="neutral" />
+              <StatCard3D title="Export Formats" value={3} icon={<Download className="w-6 h-6 text-white" />} iconBg="warning" change="PDF · Excel · JSON" trend="neutral" />
+            </div>
+          )}
         </DashboardSection>
 
         {/* Level 2: Report Types */}
