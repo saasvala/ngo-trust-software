@@ -39,6 +39,12 @@ const Expenses = () => {
   const currencySymbol = location.country?.currency.symbol || "₹";
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filtered = expenseData.filter(e => {
     const matchesSearch = e.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
