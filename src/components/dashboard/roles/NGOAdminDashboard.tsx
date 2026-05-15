@@ -19,6 +19,12 @@ import {
 export const NGOAdminDashboard = () => {
   const { formatCurrency, location } = useRules();
   const currencySymbol = location.country?.currency.symbol || "₹";
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="space-y-8">
