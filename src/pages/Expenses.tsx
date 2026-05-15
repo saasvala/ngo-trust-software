@@ -63,12 +63,18 @@ const Expenses = () => {
       <div className="space-y-8">
         {/* Level 1: Macro */}
         <DashboardSection level="macro" title="Expense Overview" subtitle="Current period financial metrics" icon={<Receipt className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Total Expenses" value={totalExpenses} prefix={currencySymbol} icon={<Receipt className="w-6 h-6 text-white" />} iconBg="primary" change="This month" trend="up" />
-            <StatCard3D title="Approved" value={approved} prefix={currencySymbol} icon={<CheckCircle className="w-6 h-6 text-white" />} iconBg="success" change={`${expenseData.filter(e => e.status === "approved").length} items`} trend="up" />
-            <StatCard3D title="Pending Approval" value={pending} prefix={currencySymbol} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change={`${expenseData.filter(e => e.status === "pending").length} items`} trend="neutral" />
-            <StatCard3D title="Rejected" value={expenseData.filter(e => e.status === "rejected").length} icon={<XCircle className="w-6 h-6 text-white" />} iconBg="coral" change="This month" trend="down" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Total Expenses" value={totalExpenses} prefix={currencySymbol} icon={<Receipt className="w-6 h-6 text-white" />} iconBg="primary" change="This month" trend="up" />
+              <StatCard3D title="Approved" value={approved} prefix={currencySymbol} icon={<CheckCircle className="w-6 h-6 text-white" />} iconBg="success" change={`${expenseData.filter(e => e.status === "approved").length} items`} trend="up" />
+              <StatCard3D title="Pending Approval" value={pending} prefix={currencySymbol} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change={`${expenseData.filter(e => e.status === "pending").length} items`} trend="neutral" />
+              <StatCard3D title="Rejected" value={expenseData.filter(e => e.status === "rejected").length} icon={<XCircle className="w-6 h-6 text-white" />} iconBg="coral" change="This month" trend="down" />
+            </div>
+          )}
         </DashboardSection>
 
         {/* Level 2: Module View */}
