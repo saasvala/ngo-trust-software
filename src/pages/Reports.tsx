@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
 import { useRules } from "@/contexts/RuleContext";
+import { StatCardSkeleton, EmptyState } from "@/components/ui/loading";
 import {
   FileBarChart, Download, FileText, TrendingUp, Users, FolderKanban,
   Receipt, Shield, Landmark, Activity, Calendar, Printer
