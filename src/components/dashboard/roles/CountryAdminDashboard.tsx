@@ -38,12 +38,18 @@ export const CountryAdminDashboard = () => {
   return (
     <div className="space-y-8">
       <DashboardSection level="macro" title={`${countryName} Overview`} subtitle="Country-wide NGO network performance" icon={<Globe className="w-6 h-6 text-white" />}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard3D title="Total NGOs" value={41} icon={<Users className="w-6 h-6 text-white" />} iconBg="teal" change="Across 5 states" trend="up" />
-          <StatCard3D title="Total Donations" value="₹6.89Cr" icon={<TrendingUp className="w-6 h-6 text-white" />} iconBg="success" change="+18% YoY" trend="up" />
-          <StatCard3D title="Avg Compliance" value="90.2%" icon={<Shield className="w-6 h-6 text-white" />} iconBg="warning" change="Target: 95%" trend="neutral" />
-          <StatCard3D title="Risk Flags" value={8} icon={<AlertTriangle className="w-6 h-6 text-white" />} iconBg="coral" change="3 critical" trend="down" />
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard3D title="Total NGOs" value={41} icon={<Users className="w-6 h-6 text-white" />} iconBg="teal" change="Across 5 states" trend="up" />
+            <StatCard3D title="Total Donations" value="₹6.89Cr" icon={<TrendingUp className="w-6 h-6 text-white" />} iconBg="success" change="+18% YoY" trend="up" />
+            <StatCard3D title="Avg Compliance" value="90.2%" icon={<Shield className="w-6 h-6 text-white" />} iconBg="warning" change="Target: 95%" trend="neutral" />
+            <StatCard3D title="Risk Flags" value={8} icon={<AlertTriangle className="w-6 h-6 text-white" />} iconBg="coral" change="3 critical" trend="down" />
+          </div>
+        )}
       </DashboardSection>
 
       <DashboardSection level="micro" title="State-wise Performance" subtitle="NGO metrics aggregated by state" icon={<MapPin className="w-5 h-5 text-primary" />} defaultExpanded={true}>
