@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { TableSkeleton, EmptyState, StatCardSkeleton } from "@/components/ui/loading";
 import {
   Search, Plus, Receipt, CreditCard, Banknote, Smartphone,
   Building2, Globe, CheckCircle2, XCircle, Heart, Calendar,
