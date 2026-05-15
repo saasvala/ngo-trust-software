@@ -48,6 +48,12 @@ const getFileIcon = (type: string) => {
 const Documents = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filtered = documentData.filter(d => {
     const matchesSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
