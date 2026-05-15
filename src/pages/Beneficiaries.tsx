@@ -47,12 +47,18 @@ const Beneficiaries = () => {
       <div className="space-y-8">
         {/* Level 1: Macro */}
         <DashboardSection level="macro" title="Beneficiary Overview" subtitle="Impact metrics and demographics" icon={<Users className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Total Beneficiaries" value={2847} icon={<Users className="w-6 h-6 text-white" />} iconBg="primary" change="+124 this quarter" trend="up" />
-            <StatCard3D title="Women & Girls" value={1623} icon={<Heart className="w-6 h-6 text-white" />} iconBg="coral" change="57% of total" trend="up" />
-            <StatCard3D title="Children (<18)" value={892} icon={<Baby className="w-6 h-6 text-white" />} iconBg="teal" change="31% of total" trend="up" />
-            <StatCard3D title="Districts Covered" value={14} icon={<MapPin className="w-6 h-6 text-white" />} iconBg="warning" change="Across 3 states" trend="neutral" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Total Beneficiaries" value={2847} icon={<Users className="w-6 h-6 text-white" />} iconBg="primary" change="+124 this quarter" trend="up" />
+              <StatCard3D title="Women & Girls" value={1623} icon={<Heart className="w-6 h-6 text-white" />} iconBg="coral" change="57% of total" trend="up" />
+              <StatCard3D title="Children (<18)" value={892} icon={<Baby className="w-6 h-6 text-white" />} iconBg="teal" change="31% of total" trend="up" />
+              <StatCard3D title="Districts Covered" value={14} icon={<MapPin className="w-6 h-6 text-white" />} iconBg="warning" change="Across 3 states" trend="neutral" />
+            </div>
+          )}
         </DashboardSection>
 
         {/* Level 2: Module View */}
