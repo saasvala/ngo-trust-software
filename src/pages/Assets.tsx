@@ -40,19 +40,33 @@ const Assets = () => {
         </DashboardSection>
 
         <DashboardSection level="micro" title="Asset Register" subtitle="All tracked assets with status" icon={<FileText className="w-5 h-5 text-primary" />} defaultExpanded={true}>
-          <div className="space-y-3">
-            {assets.map((a, i) => (
-              <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
-                <div>
-                  <p className="text-sm font-medium text-foreground">{a.name}</p>
-                  <p className="text-xs text-muted-foreground">{a.category} · {a.location}{a.assignedTo ? ` · ${a.assignedTo}` : ''}</p>
+          {loading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 w-48 bg-muted rounded animate-pulse" />
+                    <div className="h-3 w-32 bg-muted rounded animate-pulse" />
+                  </div>
+                  <div className="h-6 w-20 rounded-full bg-muted animate-pulse" />
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${a.status === 'assigned' || a.status === 'in_use' ? 'bg-success/20 text-emerald-400' : a.status === 'available' ? 'bg-primary/20 text-primary' : 'bg-warning/20 text-warning'}`}>
-                  {a.status.replace('_', ' ')}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {assets.map((a, i) => (
+                <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{a.name}</p>
+                    <p className="text-xs text-muted-foreground">{a.category} · {a.location}{a.assignedTo ? ` · ${a.assignedTo}` : ''}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${a.status === 'assigned' || a.status === 'in_use' ? 'bg-success/20 text-emerald-400' : a.status === 'available' ? 'bg-primary/20 text-primary' : 'bg-warning/20 text-warning'}`}>
+                    {a.status.replace('_', ' ')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </DashboardSection>
 
         <DashboardSection level="nano" title="Category Breakdown" subtitle="Assets grouped by type" icon={<Package className="w-5 h-5 text-teal" />} defaultExpanded={false}>
