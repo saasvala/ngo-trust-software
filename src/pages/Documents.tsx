@@ -99,37 +99,47 @@ const Documents = () => {
             </button>
           </div>
           <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>File</th><th>Name</th><th>Category</th><th>Size</th><th>Uploaded By</th><th>Date</th><th>Ver</th><th>Access</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(d => (
-                  <tr key={d.id}>
-                    <td>{getFileIcon(d.type)}</td>
-                    <td className="font-medium text-foreground max-w-[220px] truncate">{d.name}</td>
-                    <td><span className="badge-primary">{d.category}</span></td>
-                    <td className="text-muted-foreground text-xs">{d.size}</td>
-                    <td className="text-muted-foreground text-xs">{d.uploadedBy}</td>
-                    <td className="text-muted-foreground text-xs">{new Date(d.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "2-digit" })}</td>
-                    <td className="text-center"><span className="px-1.5 py-0.5 rounded bg-secondary text-xs text-muted-foreground">v{d.version}</span></td>
-                    <td>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${d.access === "admin" ? "bg-coral/20 text-coral" : d.access === "finance" ? "bg-warning/20 text-warning" : "bg-success/20 text-emerald-400"}`}>
-                        {d.access}
-                      </span>
-                    </td>
-                    <td>
-                       <div className="flex gap-1">
-                        <button onClick={() => toast.info(`Opening ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="View"><Eye className="w-3.5 h-3.5 text-muted-foreground" /></button>
-                        <button onClick={() => toast.success(`Downloading ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="Download"><Download className="w-3.5 h-3.5 text-muted-foreground" /></button>
-                      </div>
-                    </td>
+            {loading ? (
+              <TableSkeleton rows={5} columns={9} />
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={<FileText className="w-6 h-6 text-muted-foreground" />}
+                title="No documents found"
+                description="Try adjusting your search or category filters."
+              />
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>File</th><th>Name</th><th>Category</th><th>Size</th><th>Uploaded By</th><th>Date</th><th>Ver</th><th>Access</th><th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map(d => (
+                    <tr key={d.id}>
+                      <td>{getFileIcon(d.type)}</td>
+                      <td className="font-medium text-foreground max-w-[220px] truncate">{d.name}</td>
+                      <td><span className="badge-primary">{d.category}</span></td>
+                      <td className="text-muted-foreground text-xs">{d.size}</td>
+                      <td className="text-muted-foreground text-xs">{d.uploadedBy}</td>
+                      <td className="text-muted-foreground text-xs">{new Date(d.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "2-digit" })}</td>
+                      <td className="text-center"><span className="px-1.5 py-0.5 rounded bg-secondary text-xs text-muted-foreground">v{d.version}</span></td>
+                      <td>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${d.access === "admin" ? "bg-coral/20 text-coral" : d.access === "finance" ? "bg-warning/20 text-warning" : "bg-success/20 text-emerald-400"}`}>
+                          {d.access}
+                        </span>
+                      </td>
+                      <td>
+                         <div className="flex gap-1">
+                          <button onClick={() => toast.info(`Opening ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="View"><Eye className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                          <button onClick={() => toast.success(`Downloading ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="Download"><Download className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </DashboardSection>
 
