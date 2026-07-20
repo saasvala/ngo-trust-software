@@ -1,5 +1,6 @@
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { AccessibilityAudit } from "@/components/a11y/AccessibilityAudit";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -27,6 +28,7 @@ export const MainLayout = ({ children, title, subtitle }: MainLayoutProps) => {
           </div>
         </main>
       </div>
+      <AccessibilityAudit />
     </div>
   );
 };
