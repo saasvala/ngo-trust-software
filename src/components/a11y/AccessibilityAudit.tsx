@@ -1,8 +1,14 @@
-import { useState } from "react";
-import { Accessibility, X, AlertTriangle, AlertCircle, Info, CheckCircle2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import {
+  Accessibility, X, AlertTriangle, AlertCircle, Info, CheckCircle2,
+  FileDown, FileJson, History, Keyboard, ChevronLeft, ChevronRight, Trash2,
+} from "lucide-react";
+import jsPDF from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 type Severity = "critical" | "warning" | "info";
 
@@ -226,6 +232,182 @@ const runAudit = (): Issue[] => {
   return issues;
 };
 
+// ---- History storage (per pathname) ----
+interface AuditRun {
+  id: string;
+  timestamp: number;
+  path: string;
+  counts: { critical: number; warning: number; info: number };
+  issues: Issue[];
+}
+const HISTORY_KEY = "a11y_audit_history_v1";
+const loadHistory = (): AuditRun[] => {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); } catch { return []; }
+};
+const saveHistory = (runs: AuditRun[]) => {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(runs.slice(0, 100))); } catch { /* ignore */ }
+};
+
+// ---- Exports ----
+const downloadBlob = (data: string, filename: string, mime: string) => {
+  const blob = new Blob([data], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+const exportJSON = (run: AuditRun) => {
+  downloadBlob(JSON.stringify(run, null, 2), `a11y-audit-${new Date(run.timestamp).toISOString().slice(0, 19)}.json`, "application/json");
+};
+
+const exportPDF = (run: AuditRun) => {
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const margin = 40;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  let y = margin;
+
+  doc.setFontSize(18); doc.text("Accessibility Audit Report", margin, y); y += 22;
+  doc.setFontSize(10); doc.setTextColor(100);
+  doc.text(`Page: ${run.path}`, margin, y); y += 14;
+  doc.text(`Generated: ${new Date(run.timestamp).toLocaleString()}`, margin, y); y += 20;
+  doc.setTextColor(0); doc.setFontSize(12);
+  doc.text(`Critical: ${run.counts.critical}   Warnings: ${run.counts.warning}   Info: ${run.counts.info}`, margin, y);
+  y += 24;
+
+  const writeLine = (text: string, size = 10, color: [number, number, number] = [30, 30, 30]) => {
+    doc.setFontSize(size); doc.setTextColor(...color);
+    const lines = doc.splitTextToSize(text, pageWidth - margin * 2);
+    lines.forEach((ln: string) => {
+      if (y > pageHeight - margin) { doc.addPage(); y = margin; }
+      doc.text(ln, margin, y); y += size + 3;
+    });
+  };
+
+  if (run.issues.length === 0) {
+    writeLine("No issues detected. This page passes automated checks.", 11, [30, 120, 60]);
+  }
+
+  run.issues.forEach((issue, idx) => {
+    if (y > pageHeight - margin - 60) { doc.addPage(); y = margin; }
+    const color: [number, number, number] =
+      issue.severity === "critical" ? [200, 30, 40] :
+      issue.severity === "warning" ? [200, 130, 20] : [80, 80, 80];
+    writeLine(`${idx + 1}. [${issue.severity.toUpperCase()}] ${issue.rule}`, 11, color);
+    writeLine(issue.message, 10);
+    writeLine(`Selector: ${issue.selector}`, 9, [90, 90, 90]);
+    writeLine(`Snippet:  ${issue.snippet}`, 9, [90, 90, 90]);
+    y += 6;
+  });
+
+  doc.save(`a11y-audit-${new Date(run.timestamp).toISOString().slice(0, 19)}.pdf`);
+};
+
+// ---- Focus walkthrough ----
+const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+interface FocusStep { el: HTMLElement; rect: DOMRect; trap: boolean; note?: string; }
+
+const collectFocusOrder = (): FocusStep[] => {
+  const root = document.querySelector("main") || document.body;
+  const nodes = Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+    .filter((el) => {
+      if (el.getAttribute("aria-hidden") === "true") return false;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return false;
+      const style = getComputedStyle(el);
+      return style.visibility !== "hidden" && style.display !== "none";
+    });
+  // Sort by tabindex (positive first, in ascending order), then DOM order
+  const withIdx = nodes.map((el, i) => ({ el, i, t: parseInt(el.getAttribute("tabindex") || "0") }));
+  withIdx.sort((a, b) => {
+    if (a.t > 0 && b.t > 0) return a.t - b.t;
+    if (a.t > 0) return -1;
+    if (b.t > 0) return 1;
+    return a.i - b.i;
+  });
+  return withIdx.map(({ el, t }) => {
+    const rect = el.getBoundingClientRect();
+    const trap = t > 0; // positive tabindex disrupts order — flag as potential trap risk
+    return { el, rect, trap, note: t > 0 ? `Positive tabindex=${t}` : undefined };
+  });
+};
+
+const FocusWalkthrough = ({ onClose }: { onClose: () => void }) => {
+  const [steps, setSteps] = useState<FocusStep[]>([]);
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    setSteps(collectFocusOrder());
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") setCurrent((c) => Math.min(c + 1, steps.length - 1));
+      if (e.key === "ArrowLeft") setCurrent((c) => Math.max(c - 1, 0));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [steps.length]);
+
+  useEffect(() => {
+    const step = steps[current];
+    if (!step) return;
+    step.el.scrollIntoView({ behavior: "smooth", block: "center" });
+    try { step.el.focus({ preventScroll: true }); } catch { /* ignore */ }
+  }, [current, steps]);
+
+  const active = steps[current];
+  const activeRect = active?.el.getBoundingClientRect();
+
+  return (
+    <div className="fixed inset-0 z-[60] pointer-events-none" aria-hidden>
+      {steps.map((s, idx) => {
+        const r = s.el.getBoundingClientRect();
+        return (
+          <div
+            key={idx}
+            className="absolute pointer-events-none"
+            style={{ top: r.top + window.scrollY - 10, left: r.left + window.scrollX - 10 }}
+          >
+            <div className={`text-[10px] font-bold text-white rounded-full h-6 min-w-6 px-1.5 flex items-center justify-center shadow-lg ${s.trap ? "bg-destructive" : idx === current ? "bg-primary ring-4 ring-primary/30" : "bg-foreground/70"}`}>
+              {idx + 1}
+            </div>
+          </div>
+        );
+      })}
+      {activeRect && (
+        <div
+          className="absolute border-2 border-primary rounded-md pointer-events-none animate-pulse"
+          style={{
+            top: activeRect.top + window.scrollY - 4,
+            left: activeRect.left + window.scrollX - 4,
+            width: activeRect.width + 8,
+            height: activeRect.height + 8,
+          }}
+        />
+      )}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto bg-card border border-border shadow-2xl rounded-full flex items-center gap-2 px-3 py-2 z-[70]">
+        <Keyboard className="w-4 h-4 text-primary" />
+        <Button variant="ghost" size="icon" onClick={() => setCurrent((c) => Math.max(c - 1, 0))} disabled={current === 0} aria-label="Previous focus stop">
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        <div className="text-xs font-medium min-w-[100px] text-center">
+          {steps.length === 0 ? "No focusable elements" : `${current + 1} / ${steps.length}`}
+          {active?.trap && <div className="text-[10px] text-destructive">{active.note}</div>}
+        </div>
+        <Button variant="ghost" size="icon" onClick={() => setCurrent((c) => Math.min(c + 1, steps.length - 1))} disabled={current >= steps.length - 1} aria-label="Next focus stop">
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+        <div className="w-px h-6 bg-border mx-1" />
+        <Button variant="ghost" size="sm" onClick={onClose} aria-label="Exit focus walkthrough">
+          <X className="w-4 h-4 mr-1" /> Exit
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const severityIcon = (s: Severity) =>
   s === "critical" ? <AlertCircle className="w-4 h-4 text-destructive" /> :
   s === "warning" ? <AlertTriangle className="w-4 h-4 text-warning" /> :
@@ -236,11 +418,31 @@ export const AccessibilityAudit = () => {
   const [issues, setIssues] = useState<Issue[] | null>(null);
   const [scanning, setScanning] = useState(false);
   const [highlight, setHighlight] = useState<Severity | "all">("all");
+  const [tab, setTab] = useState<"current" | "history">("current");
+  const [history, setHistory] = useState<AuditRun[]>(() => loadHistory());
+  const [walkthrough, setWalkthrough] = useState(false);
+  const location = useLocation();
+  const path = location.pathname;
 
   const scan = () => {
     setScanning(true);
     setTimeout(() => {
-      setIssues(runAudit());
+      const result = runAudit();
+      setIssues(result);
+      const run: AuditRun = {
+        id: `${Date.now()}`,
+        timestamp: Date.now(),
+        path,
+        counts: {
+          critical: result.filter((i) => i.severity === "critical").length,
+          warning: result.filter((i) => i.severity === "warning").length,
+          info: result.filter((i) => i.severity === "info").length,
+        },
+        issues: result,
+      };
+      const next = [run, ...loadHistory()].slice(0, 100);
+      saveHistory(next);
+      setHistory(next);
       setScanning(false);
     }, 60);
   };
@@ -258,6 +460,18 @@ export const AccessibilityAudit = () => {
 
   const filtered = issues?.filter((i) => highlight === "all" || i.severity === highlight) ?? [];
 
+  const currentRun: AuditRun | null = issues
+    ? { id: "current", timestamp: Date.now(), path, counts, issues }
+    : null;
+
+  const pageHistory = history.filter((h) => h.path === path);
+
+  const clearHistory = () => {
+    const kept = history.filter((h) => h.path !== path);
+    saveHistory(kept);
+    setHistory(kept);
+  };
+
   return (
     <>
       <Button
@@ -269,6 +483,8 @@ export const AccessibilityAudit = () => {
         <Accessibility className="w-5 h-5" />
       </Button>
 
+      {walkthrough && <FocusWalkthrough onClose={() => setWalkthrough(false)} />}
+
       {open && (
         <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-label="Accessibility audit">
           <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
@@ -279,14 +495,23 @@ export const AccessibilityAudit = () => {
                   <Accessibility className="w-5 h-5 text-primary" />
                   Accessibility Audit
                 </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">Scans the current page for WCAG issues.</p>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[280px]">Page: {path}</p>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Close audit panel">
                 <X className="w-4 h-4" />
               </Button>
             </div>
 
-            <div className="p-4 border-b border-border space-y-3">
+            <Tabs value={tab} onValueChange={(v) => setTab(v as "current" | "history")} className="flex-1 flex flex-col min-h-0">
+              <TabsList className="mx-4 mt-3 grid grid-cols-2">
+                <TabsTrigger value="current">Current scan</TabsTrigger>
+                <TabsTrigger value="history">
+                  History {pageHistory.length > 0 && <span className="ml-1 text-[10px] opacity-70">({pageHistory.length})</span>}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="current" className="flex-1 flex flex-col min-h-0 m-0">
+                <div className="p-4 border-b border-border space-y-3">
               <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => setHighlight(highlight === "critical" ? "all" : "critical")}
@@ -313,6 +538,17 @@ export const AccessibilityAudit = () => {
               <Button onClick={scan} disabled={scanning} className="w-full" size="sm">
                 {scanning ? "Scanning…" : "Re-scan page"}
               </Button>
+              <div className="grid grid-cols-3 gap-2">
+                <Button variant="outline" size="sm" onClick={() => currentRun && exportPDF(currentRun)} disabled={!currentRun}>
+                  <FileDown className="w-3.5 h-3.5 mr-1" /> PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => currentRun && exportJSON(currentRun)} disabled={!currentRun}>
+                  <FileJson className="w-3.5 h-3.5 mr-1" /> JSON
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => { setOpen(false); setWalkthrough(true); }}>
+                  <Keyboard className="w-3.5 h-3.5 mr-1" /> Focus
+                </Button>
+              </div>
             </div>
 
             <ScrollArea className="flex-1">
@@ -342,6 +578,53 @@ export const AccessibilityAudit = () => {
                 ))}
               </div>
             </ScrollArea>
+              </TabsContent>
+
+              <TabsContent value="history" className="flex-1 flex flex-col min-h-0 m-0">
+                <div className="p-4 border-b border-border flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm">
+                    <History className="w-4 h-4 text-primary" />
+                    <span className="font-medium">Past runs on this page</span>
+                  </div>
+                  {pageHistory.length > 0 && (
+                    <Button variant="ghost" size="sm" onClick={clearHistory} aria-label="Clear history for this page">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
+                </div>
+                <ScrollArea className="flex-1">
+                  <div className="p-4 space-y-2">
+                    {pageHistory.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-8">
+                        No past audits for this page yet. Run a scan to record history.
+                      </p>
+                    )}
+                    {pageHistory.map((run) => (
+                      <div key={run.id} className="p-3 rounded-lg border border-border bg-secondary/20">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(run.timestamp).toLocaleString()}
+                          </div>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => exportPDF(run)} aria-label="Export run as PDF">
+                              <FileDown className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => exportJSON(run)} aria-label="Export run as JSON">
+                              <FileJson className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex gap-3 text-xs">
+                          <span className="text-destructive font-semibold">{run.counts.critical} critical</span>
+                          <span className="text-warning font-semibold">{run.counts.warning} warn</span>
+                          <span className="text-muted-foreground">{run.counts.info} info</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       )}
