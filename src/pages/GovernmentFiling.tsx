@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
+import { ConfirmActionDialog } from "@/components/common/ConfirmActionDialog";
+import { notify } from "@/lib/notify";
 import { Building2, FileText, CheckCircle, Clock, AlertTriangle, Upload, RefreshCw, Activity } from "lucide-react";
 
 const filings = [
@@ -20,6 +23,8 @@ const submissionLog = [
 ];
 
 const GovernmentFiling = () => {
+  const [confirmFiling, setConfirmFiling] = useState<string | null>(null);
+
   return (
     <MainLayout title="Government Filing & Integration" subtitle="Regulatory filing tracker with submission logs and acknowledgment storage">
       <div className="space-y-8">
@@ -52,8 +57,12 @@ const GovernmentFiling = () => {
                       {f.status.replace('_', ' ')}
                     </span>
                     {f.status !== 'submitted' && (
-                      <button className="p-1.5 rounded-lg bg-primary/20 hover:bg-primary/30 transition-colors">
-                        <Upload className="w-3.5 h-3.5 text-primary" />
+                      <button
+                        onClick={() => setConfirmFiling(f.name)}
+                        aria-label={`Submit ${f.name} to ${f.authority}`}
+                        className="p-1.5 rounded-lg bg-primary/20 hover:bg-primary/30 transition-colors"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
                       </button>
                     )}
                   </div>
