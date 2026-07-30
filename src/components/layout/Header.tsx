@@ -1,4 +1,4 @@
-import { Search, User, ChevronDown, LogOut } from "lucide-react";
+import { Search, User, ChevronDown, LogOut, Menu } from "lucide-react";
 import { LocationBadge } from "./LocationBadge";
 import { RoleSwitcher } from "./RoleSwitcher";
 import { NotificationBell } from "./NotificationBell";
@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSidebarState } from "./SidebarState";
 
 interface HeaderProps {
   title: string;
@@ -19,6 +20,7 @@ interface HeaderProps {
 
 export const Header = ({ title, subtitle }: HeaderProps) => {
   const { currentRole } = useRules();
+  const { setMobileOpen } = useSidebarState();
 
   const handleLogout = () => {
     localStorage.removeItem('ngo_location_config');
@@ -27,20 +29,35 @@ export const Header = ({ title, subtitle }: HeaderProps) => {
   };
 
   return (
-    <header className="h-20 flex items-center justify-between px-8 border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-40">
+    <header className="min-h-20 flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3 border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-30">
       {/* Left - Title */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-        {subtitle && <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>}
+      <div className="flex items-center gap-3 min-w-0">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="lg:hidden min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-secondary text-foreground"
+          aria-label="Open navigation menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">{title}</h1>
+          {subtitle && (
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">{subtitle}</p>
+          )}
+        </div>
       </div>
 
       {/* Right - Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
         {/* Location Badge */}
-        <LocationBadge />
+        <div className="hidden md:block">
+          <LocationBadge />
+        </div>
 
         {/* Role Switcher (Demo) */}
-        <RoleSwitcher />
+        <div className="hidden sm:block">
+          <RoleSwitcher />
+        </div>
 
         {/* Search */}
         <div className="relative hidden md:block">
@@ -66,7 +83,7 @@ export const Header = ({ title, subtitle }: HeaderProps) => {
                 <p className="text-sm font-medium text-foreground">Demo User</p>
                 <p className="text-xs text-muted-foreground">{getRoleLabel(currentRole)}</p>
               </div>
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
