@@ -7,7 +7,10 @@ import { useRules } from "@/contexts/RuleContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { TableSkeleton, EmptyState, StatCardSkeleton } from "@/components/ui/loading";
+import { TableSkeleton, StatCardSkeleton } from "@/components/ui/loading";
+import { EmptyState, NoResultsState, ErrorState } from "@/components/common/StateBlocks";
+import { ConfirmActionDialog } from "@/components/common/ConfirmActionDialog";
+import { notify } from "@/lib/notify";
 import {
   Receipt, Search, Plus, Clock, CheckCircle, XCircle, TrendingUp,
   AlertTriangle, FileText, Download, Filter, Upload, Activity, IndianRupee
@@ -40,13 +43,22 @@ const Expenses = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [rows, setRows] = useState(expenseData);
+  const [confirm, setConfirm] = useState<
+    { id: string; amount: number; mode: "approve" | "reject" } | null
+  >(null);
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
+    setLoadError(null);
     const timer = setTimeout(() => setLoading(false), 600);
     return () => clearTimeout(timer);
-  }, []);
+  };
 
-  const filtered = expenseData.filter(e => {
+  useEffect(() => load(), []);
+
+  const filtered = rows.filter(e => {
     const matchesSearch = e.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       e.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       e.project.toLowerCase().includes(searchQuery.toLowerCase());
@@ -54,9 +66,21 @@ const Expenses = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const totalExpenses = expenseData.reduce((s, e) => s + e.amount, 0);
-  const approved = expenseData.filter(e => e.status === "approved").reduce((s, e) => s + e.amount, 0);
-  const pending = expenseData.filter(e => e.status === "pending").reduce((s, e) => s + e.amount, 0);
+  const totalExpenses = rows.reduce((s, e) => s + e.amount, 0);
+  const approved = rows.filter(e => e.status === "approved").reduce((s, e) => s + e.amount, 0);
+  const pending = rows.filter(e => e.status === "pending").reduce((s, e) => s + e.amount, 0);
+  const hasFilters = searchQuery.trim() !== "" || filterStatus !== "all";
+
+  const applyDecision = (id: string, status: "approved" | "rejected", reason: string) => {
+    setRows(prev => prev.map(r => (r.id === id ? { ...r, status } : r)));
+    if (status === "approved") {
+      notify.success(`${id} approved`, {
+        description: "The expense is locked and recorded in the audit trail.",
+      });
+    } else {
+      notify.warning(`${id} rejected`, { description: `Reason logged: ${reason}` });
+    }
+  };
 
   return (
     <MainLayout title="Expenses" subtitle="Track, approve and manage organizational expenses">
@@ -70,9 +94,9 @@ const Expenses = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard3D title="Total Expenses" value={totalExpenses} prefix={currencySymbol} icon={<Receipt className="w-6 h-6 text-white" />} iconBg="primary" change="This month" trend="up" />
-              <StatCard3D title="Approved" value={approved} prefix={currencySymbol} icon={<CheckCircle className="w-6 h-6 text-white" />} iconBg="success" change={`${expenseData.filter(e => e.status === "approved").length} items`} trend="up" />
-              <StatCard3D title="Pending Approval" value={pending} prefix={currencySymbol} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change={`${expenseData.filter(e => e.status === "pending").length} items`} trend="neutral" />
-              <StatCard3D title="Rejected" value={expenseData.filter(e => e.status === "rejected").length} icon={<XCircle className="w-6 h-6 text-white" />} iconBg="coral" change="This month" trend="down" />
+              <StatCard3D title="Approved" value={approved} prefix={currencySymbol} icon={<CheckCircle className="w-6 h-6 text-white" />} iconBg="success" change={`${rows.filter(e => e.status === "approved").length} items`} trend="up" />
+              <StatCard3D title="Pending Approval" value={pending} prefix={currencySymbol} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change={`${rows.filter(e => e.status === "pending").length} items`} trend="neutral" />
+              <StatCard3D title="Rejected" value={rows.filter(e => e.status === "rejected").length} icon={<XCircle className="w-6 h-6 text-white" />} iconBg="coral" change="This month" trend="down" />
             </div>
           )}
         </DashboardSection>
@@ -92,7 +116,7 @@ const Expenses = () => {
                 </button>
               ))}
             </div>
-            <button onClick={() => toast.success(`Exported ${filtered.length} expense records`)} className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
+            <button onClick={() => filtered.length === 0 ? notify.warning("Nothing to export", { description: "Adjust your filters so at least one expense is listed." }) : notify.success(`Exported ${filtered.length} expense records`)} className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
               <Download className="w-3 h-3" /> Export
             </button>
           </div>
@@ -101,11 +125,23 @@ const Expenses = () => {
           <div className="overflow-x-auto">
             {loading ? (
               <TableSkeleton rows={5} columns={10} />
+            ) : loadError ? (
+              <ErrorState description={loadError} onRetry={load} />
+            ) : filtered.length === 0 && hasFilters ? (
+              <NoResultsState
+                entity="expenses"
+                onClearFilters={() => {
+                  setSearchQuery("");
+                  setFilterStatus("all");
+                }}
+              />
             ) : filtered.length === 0 ? (
               <EmptyState
                 icon={<Receipt className="w-6 h-6 text-muted-foreground" />}
-                title="No expenses found"
-                description="Try adjusting your search or filters."
+                title="No expenses recorded yet"
+                description="Submit your first expense to start tracking spend against project budgets."
+                actionLabel="Record expense"
+                onAction={() => notify.info("Expense form opening", { description: "Fill in amount, project and attach the bill." })}
               />
             ) : (
               <table className="data-table">
@@ -142,8 +178,8 @@ const Expenses = () => {
                       <td>
                         {e.status === "pending" && (
                           <div className="flex gap-1">
-                            <button onClick={() => toast.success(`${e.id} approved`)} className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors" title="Approve"><CheckCircle className="w-3.5 h-3.5 text-success" /></button>
-                            <button onClick={() => toast.error(`${e.id} rejected`)} className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors" title="Reject"><XCircle className="w-3.5 h-3.5 text-coral" /></button>
+                            <button onClick={() => setConfirm({ id: e.id, amount: e.amount, mode: "approve" })} aria-label={`Approve expense ${e.id}`} className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors"><CheckCircle className="w-3.5 h-3.5 text-success" aria-hidden="true" /></button>
+                            <button onClick={() => setConfirm({ id: e.id, amount: e.amount, mode: "reject" })} aria-label={`Reject expense ${e.id}`} className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors"><XCircle className="w-3.5 h-3.5 text-coral" aria-hidden="true" /></button>
                           </div>
                         )}
                       </td>
@@ -189,6 +225,36 @@ const Expenses = () => {
           </DeepResearchView>
         </DashboardSection>
       </div>
+
+      <ConfirmActionDialog
+        open={confirm !== null}
+        onOpenChange={(open) => !open && setConfirm(null)}
+        tone={confirm?.mode === "reject" ? "destructive" : "default"}
+        requiredPermission="canApproveExpenses"
+        actionLabel="expense approvals"
+        title={
+          confirm?.mode === "reject"
+            ? `Reject expense ${confirm?.id}?`
+            : `Approve expense ${confirm?.id}?`
+        }
+        description={
+          confirm
+            ? `${currencySymbol}${confirm.amount.toLocaleString()} · This decision is recorded against your user in the audit trail.`
+            : ""
+        }
+        impact={
+          confirm?.mode === "approve"
+            ? "Approved expenses are immutable and immediately deducted from the project balance."
+            : "Rejections notify the requester and cannot be undone — a new request must be raised."
+        }
+        requireReason={confirm?.mode === "reject"}
+        reasonLabel="Rejection reason"
+        confirmLabel={confirm?.mode === "reject" ? "Reject expense" : "Approve expense"}
+        onConfirm={(reason) =>
+          confirm &&
+          applyDecision(confirm.id, confirm.mode === "reject" ? "rejected" : "approved", reason)
+        }
+      />
     </MainLayout>
   );
 };

@@ -1,10 +1,25 @@
+import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
+import { ConfirmActionDialog } from "@/components/common/ConfirmActionDialog";
+import { EmptyState } from "@/components/common/StateBlocks";
+import { notify } from "@/lib/notify";
 import { CheckSquare, Clock, CheckCircle, XCircle, AlertTriangle, Activity, GitBranch, ArrowRight } from "lucide-react";
 
-const approvals = [
+type ApprovalItem = {
+  item: string;
+  amount: number;
+  requestedBy: string;
+  date: string;
+  status: string;
+  level: string;
+  chain: string[];
+  rejectionReason?: string;
+};
+
+const approvals: ApprovalItem[] = [
   { item: "Expense - Travel to Rampur", amount: 12500, requestedBy: "Operator Raj", date: "Today", status: "pending", level: "Level 1 (Accountant)", chain: ["Accountant", "NGO Admin"] },
   { item: "Expense - Office Supplies", amount: 4800, requestedBy: "Operator Meena", date: "Today", status: "pending", level: "Auto-approved", chain: ["System"] },
   { item: "Fund Transfer - Project Alpha", amount: 250000, requestedBy: "PM Sharma", date: "Yesterday", status: "approved", level: "Level 2 (Admin)", chain: ["Accountant", "NGO Admin", "Super Admin"] },
@@ -30,6 +45,36 @@ const timeline = [
 ];
 
 const Approvals = () => {
+  const [items, setItems] = useState(approvals);
+  const [confirm, setConfirm] = useState<
+    { index: number; mode: "approve" | "reject" } | null
+  >(null);
+
+  const active = confirm !== null ? items[confirm.index] : null;
+
+  const decide = (index: number, mode: "approve" | "reject", reason: string) => {
+    setItems((prev) =>
+      prev.map((a, i) =>
+        i === index
+          ? {
+              ...a,
+              status: mode === "approve" ? "approved" : "rejected",
+              ...(mode === "reject" ? { rejectionReason: reason } : {}),
+            }
+          : a,
+      ),
+    );
+    if (mode === "approve") {
+      notify.success(`${items[index].item} approved`, {
+        description: "Moved to the next approval level and written to the audit log.",
+      });
+    } else {
+      notify.warning(`${items[index].item} rejected`, {
+        description: `Reason logged: ${reason}`,
+      });
+    }
+  };
+
   return (
     <MainLayout title="Approval Workflow" subtitle="Multi-level dynamic approval engine with condition-based routing">
       <div className="space-y-8">
@@ -43,8 +88,15 @@ const Approvals = () => {
         </DashboardSection>
 
         <DashboardSection level="micro" title="Approval Items" subtitle="All pending and recent approval actions with chain visibility" icon={<CheckSquare className="w-5 h-5 text-primary" />} defaultExpanded={true}>
+          {items.length === 0 ? (
+            <EmptyState
+              icon={<CheckSquare className="w-6 h-6 text-muted-foreground" />}
+              title="Nothing waiting on you"
+              description="New expense, transfer and grant requests will appear here as soon as they are submitted."
+            />
+          ) : (
           <div className="space-y-3">
-            {approvals.map((a, i) => (
+            {items.map((a, i) => (
               <div key={i} className="p-4 rounded-xl bg-secondary/50">
                 <div className="flex items-center justify-between mb-2">
                   <div>
@@ -57,8 +109,8 @@ const Approvals = () => {
                     </span>
                     {a.status === 'pending' && (
                       <div className="flex gap-1">
-                        <button className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors"><CheckCircle className="w-4 h-4 text-success" /></button>
-                        <button className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors"><XCircle className="w-4 h-4 text-coral" /></button>
+                        <button onClick={() => setConfirm({ index: i, mode: "approve" })} aria-label={`Approve ${a.item}`} className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors"><CheckCircle className="w-4 h-4 text-success" aria-hidden="true" /></button>
+                        <button onClick={() => setConfirm({ index: i, mode: "reject" })} aria-label={`Reject ${a.item}`} className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors"><XCircle className="w-4 h-4 text-coral" aria-hidden="true" /></button>
                       </div>
                     )}
                   </div>
@@ -72,12 +124,13 @@ const Approvals = () => {
                     </span>
                   ))}
                 </div>
-                {(a as any).rejectionReason && (
-                  <p className="text-xs text-coral mt-2">Reason: {(a as any).rejectionReason}</p>
+                {a.rejectionReason && (
+                  <p className="text-xs text-coral mt-2">Reason: {a.rejectionReason}</p>
                 )}
               </div>
             ))}
           </div>
+          )}
         </DashboardSection>
 
         <DashboardSection level="nano" title="Approval Timeline" subtitle="Step-by-step view of a multi-level approval" icon={<GitBranch className="w-5 h-5 text-teal" />} defaultExpanded={false}>
@@ -110,7 +163,7 @@ const Approvals = () => {
         </DashboardSection>
 
         <DashboardSection level="deep" title="Approval Analytics" subtitle="Historical workflow performance and bottleneck analysis" icon={<Activity className="w-5 h-5 text-coral" />} defaultExpanded={false}>
-          <DeepResearchView title="Workflow Intelligence" subtitle="Approval patterns, SLA compliance and bottleneck detection" onExport={() => {}}>
+          <DeepResearchView title="Workflow Intelligence" subtitle="Approval patterns, SLA compliance and bottleneck detection" onExport={() => notify.success("Workflow analytics exported")}>
             <div className="grid grid-cols-4 gap-4">
               {[
                 { label: "Total Processed", value: "2,847" },
@@ -127,6 +180,33 @@ const Approvals = () => {
           </DeepResearchView>
         </DashboardSection>
       </div>
+
+      <ConfirmActionDialog
+        open={confirm !== null}
+        onOpenChange={(open) => !open && setConfirm(null)}
+        tone={confirm?.mode === "reject" ? "destructive" : "default"}
+        requiredPermission="canApproveExpenses"
+        actionLabel="approvals at this level"
+        title={
+          confirm?.mode === "reject"
+            ? `Reject "${active?.item}"?`
+            : `Approve "${active?.item}"?`
+        }
+        description={
+          active
+            ? `₹${active.amount.toLocaleString()} · requested by ${active.requestedBy} · ${active.level}`
+            : ""
+        }
+        impact={
+          confirm?.mode === "approve"
+            ? "Approving advances the request in the chain and releases funds at the final level. This cannot be reversed."
+            : "Rejection is final for this request and is permanently stored with your reason."
+        }
+        requireReason={confirm?.mode === "reject"}
+        reasonLabel="Rejection reason"
+        confirmLabel={confirm?.mode === "reject" ? "Reject request" : "Approve request"}
+        onConfirm={(reason) => confirm && decide(confirm.index, confirm.mode, reason)}
+      />
     </MainLayout>
   );
 };

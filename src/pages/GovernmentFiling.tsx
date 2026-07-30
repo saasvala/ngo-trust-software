@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
+import { ConfirmActionDialog } from "@/components/common/ConfirmActionDialog";
+import { notify } from "@/lib/notify";
 import { Building2, FileText, CheckCircle, Clock, AlertTriangle, Upload, RefreshCw, Activity } from "lucide-react";
 
 const filings = [
@@ -20,6 +23,8 @@ const submissionLog = [
 ];
 
 const GovernmentFiling = () => {
+  const [confirmFiling, setConfirmFiling] = useState<string | null>(null);
+
   return (
     <MainLayout title="Government Filing & Integration" subtitle="Regulatory filing tracker with submission logs and acknowledgment storage">
       <div className="space-y-8">
@@ -52,8 +57,12 @@ const GovernmentFiling = () => {
                       {f.status.replace('_', ' ')}
                     </span>
                     {f.status !== 'submitted' && (
-                      <button className="p-1.5 rounded-lg bg-primary/20 hover:bg-primary/30 transition-colors">
-                        <Upload className="w-3.5 h-3.5 text-primary" />
+                      <button
+                        onClick={() => setConfirmFiling(f.name)}
+                        aria-label={`Submit ${f.name} to ${f.authority}`}
+                        className="p-1.5 rounded-lg bg-primary/20 hover:bg-primary/30 transition-colors"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
                       </button>
                     )}
                   </div>
@@ -78,7 +87,7 @@ const GovernmentFiling = () => {
         </DashboardSection>
 
         <DashboardSection level="deep" title="Filing Intelligence" subtitle="Compliance filing history and deadline analysis" icon={<Activity className="w-5 h-5 text-coral" />} defaultExpanded={false}>
-          <DeepResearchView title="Filing Analytics" subtitle="Multi-year filing compliance performance" onExport={() => {}}>
+          <DeepResearchView title="Filing Analytics" subtitle="Multi-year filing compliance performance" onExport={() => notify.success("Filing analytics exported")}>
             <div className="grid grid-cols-4 gap-4">
               {[
                 { label: "On-Time Rate", value: "96%" },
@@ -95,6 +104,27 @@ const GovernmentFiling = () => {
           </DeepResearchView>
         </DashboardSection>
       </div>
+
+      <ConfirmActionDialog
+        open={confirmFiling !== null}
+        onOpenChange={(open) => !open && setConfirmFiling(null)}
+        requiredPermission="canManageCompliance"
+        actionLabel="statutory filings"
+        title={`Submit ${confirmFiling} to the authority?`}
+        description="The filing is transmitted to the government portal and an acknowledgment number is stored against this record."
+        impact="Submitted filings are immutable. Corrections require a revised filing with the authority."
+        confirmLabel="Submit filing"
+        onConfirm={async () => {
+          await notify.action(
+            () => new Promise((resolve) => setTimeout(resolve, 900)),
+            {
+              loading: `Submitting ${confirmFiling}…`,
+              success: `${confirmFiling} submitted — acknowledgment stored`,
+              error: `${confirmFiling} could not be submitted`,
+            },
+          );
+        }}
+      />
     </MainLayout>
   );
 };

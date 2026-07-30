@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
 import { Input } from "@/components/ui/input";
-import { TableSkeleton, EmptyState, StatCardSkeleton } from "@/components/ui/loading";
+import { TableSkeleton, StatCardSkeleton } from "@/components/ui/loading";
+import { EmptyState, NoResultsState, ErrorState, InlineError } from "@/components/common/StateBlocks";
+import { notify } from "@/lib/notify";
 import {
   FileText, Search, FolderOpen, Upload, Download, Clock,
   Shield, Activity, Lock, Eye, File, Image, FileSpreadsheet
@@ -49,11 +51,37 @@ const Documents = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
+    setLoadError(null);
     const timer = setTimeout(() => setLoading(false), 600);
     return () => clearTimeout(timer);
-  }, []);
+  };
+
+  useEffect(() => load(), []);
+
+  const MAX_MB = 50;
+  const handleUpload = async (file?: File) => {
+    setUploadError(null);
+    if (!file) return;
+    if (file.size > MAX_MB * 1024 * 1024) {
+      setUploadError(`"${file.name}" is larger than ${MAX_MB} MB. Compress it or split the file, then upload again.`);
+      notify.error("Upload rejected", { description: `File exceeds the ${MAX_MB} MB limit.` });
+      return;
+    }
+    await notify.action(
+      () => new Promise((resolve) => setTimeout(resolve, 900)),
+      {
+        loading: `Uploading ${file.name}…`,
+        success: `${file.name} uploaded and versioned`,
+        error: `Could not upload ${file.name}`,
+      },
+    );
+  };
 
   const filtered = documentData.filter(d => {
     const matchesSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -94,18 +122,46 @@ const Documents = () => {
                 <button key={c.name} onClick={() => setFilterCategory(c.name)} className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${filterCategory === c.name ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>{c.name}</button>
               ))}
             </div>
-            <button onClick={() => toast.success(`Exported ${filtered.length} document records`)} className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
-              <Download className="w-3 h-3" /> Export
-            </button>
+            <div className="flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="sr-only"
+                aria-label="Choose a document to upload"
+                onChange={(e) => {
+                  void handleUpload(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+              <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-primary bg-primary/15 hover:bg-primary/25 transition-colors">
+                <Upload className="w-3 h-3" aria-hidden="true" /> Upload
+              </button>
+              <button onClick={() => filtered.length === 0 ? notify.warning("Nothing to export", { description: "No documents match the current filters." }) : notify.success(`Exported ${filtered.length} document records`)} className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground bg-secondary">
+                <Download className="w-3 h-3" aria-hidden="true" /> Export
+              </button>
+            </div>
           </div>
+          <InlineError message={uploadError} className="mb-3" />
           <div className="overflow-x-auto">
             {loading ? (
               <TableSkeleton rows={5} columns={9} />
+            ) : loadError ? (
+              <ErrorState description={loadError} onRetry={load} />
+            ) : filtered.length === 0 && (searchQuery.trim() !== "" || filterCategory !== "all") ? (
+              <NoResultsState
+                entity="documents"
+                onClearFilters={() => {
+                  setSearchQuery("");
+                  setFilterCategory("all");
+                }}
+              />
             ) : filtered.length === 0 ? (
               <EmptyState
                 icon={<FileText className="w-6 h-6 text-muted-foreground" />}
-                title="No documents found"
-                description="Try adjusting your search or category filters."
+                title="Your document vault is empty"
+                description="Upload certificates, reports and agreements to keep them versioned and audit-ready."
+                actionLabel="Upload document"
+                onAction={() => fileInputRef.current?.click()}
               />
             ) : (
               <table className="data-table">
@@ -131,8 +187,8 @@ const Documents = () => {
                       </td>
                       <td>
                          <div className="flex gap-1">
-                          <button onClick={() => toast.info(`Opening ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="View"><Eye className="w-3.5 h-3.5 text-muted-foreground" /></button>
-                          <button onClick={() => toast.success(`Downloading ${d.name}`)} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors" title="Download"><Download className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                          <button onClick={() => notify.info(`Opening ${d.name}`)} aria-label={`View ${d.name}`} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"><Eye className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" /></button>
+                          <button onClick={() => notify.success(`Downloading ${d.name}`)} aria-label={`Download ${d.name}`} className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"><Download className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" /></button>
                         </div>
                       </td>
                     </tr>
