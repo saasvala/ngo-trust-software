@@ -124,8 +124,8 @@ const Approvals = () => {
                     </span>
                   ))}
                 </div>
-                {(a as any).rejectionReason && (
-                  <p className="text-xs text-coral mt-2">Reason: {(a as any).rejectionReason}</p>
+                {a.rejectionReason && (
+                  <p className="text-xs text-coral mt-2">Reason: {a.rejectionReason}</p>
                 )}
               </div>
             ))}
