@@ -15,22 +15,11 @@ type NotifyOptions = {
   duration?: number;
 };
 
-const politeProps = {
-  role: "status" as const,
-  "aria-live": "polite" as const,
-};
-
-const assertiveProps = {
-  role: "alert" as const,
-  "aria-live": "assertive" as const,
-};
-
 export const notify = {
   success(message: string, options: NotifyOptions = {}) {
     return toast.success(message, {
       ...options,
       duration: options.duration ?? 4000,
-      ...politeProps,
     });
   },
   error(message: string, options: NotifyOptions = {}) {
@@ -39,25 +28,23 @@ export const notify = {
       description:
         options.description ?? "Nothing was saved. You can safely try again.",
       duration: options.duration ?? 7000,
-      ...assertiveProps,
+      closeButton: true,
     });
   },
   warning(message: string, options: NotifyOptions = {}) {
     return toast.warning(message, {
       ...options,
       duration: options.duration ?? 6000,
-      ...assertiveProps,
     });
   },
   info(message: string, options: NotifyOptions = {}) {
     return toast.info(message, {
       ...options,
       duration: options.duration ?? 4000,
-      ...politeProps,
     });
   },
   loading(message: string) {
-    return toast.loading(message, politeProps);
+    return toast.loading(message);
   },
   dismiss(id?: string | number) {
     toast.dismiss(id);
