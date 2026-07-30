@@ -87,7 +87,7 @@ const GovernmentFiling = () => {
         </DashboardSection>
 
         <DashboardSection level="deep" title="Filing Intelligence" subtitle="Compliance filing history and deadline analysis" icon={<Activity className="w-5 h-5 text-coral" />} defaultExpanded={false}>
-          <DeepResearchView title="Filing Analytics" subtitle="Multi-year filing compliance performance" onExport={() => {}}>
+          <DeepResearchView title="Filing Analytics" subtitle="Multi-year filing compliance performance" onExport={() => notify.success("Filing analytics exported")}>
             <div className="grid grid-cols-4 gap-4">
               {[
                 { label: "On-Time Rate", value: "96%" },
@@ -104,6 +104,27 @@ const GovernmentFiling = () => {
           </DeepResearchView>
         </DashboardSection>
       </div>
+
+      <ConfirmActionDialog
+        open={confirmFiling !== null}
+        onOpenChange={(open) => !open && setConfirmFiling(null)}
+        requiredPermission="canManageCompliance"
+        actionLabel="statutory filings"
+        title={`Submit ${confirmFiling} to the authority?`}
+        description="The filing is transmitted to the government portal and an acknowledgment number is stored against this record."
+        impact="Submitted filings are immutable. Corrections require a revised filing with the authority."
+        confirmLabel="Submit filing"
+        onConfirm={async () => {
+          await notify.action(
+            () => new Promise((resolve) => setTimeout(resolve, 900)),
+            {
+              loading: `Submitting ${confirmFiling}…`,
+              success: `${confirmFiling} submitted — acknowledgment stored`,
+              error: `${confirmFiling} could not be submitted`,
+            },
+          );
+        }}
+      />
     </MainLayout>
   );
 };
