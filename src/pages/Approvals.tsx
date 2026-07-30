@@ -8,7 +8,18 @@ import { EmptyState } from "@/components/common/StateBlocks";
 import { notify } from "@/lib/notify";
 import { CheckSquare, Clock, CheckCircle, XCircle, AlertTriangle, Activity, GitBranch, ArrowRight } from "lucide-react";
 
-const approvals = [
+type ApprovalItem = {
+  item: string;
+  amount: number;
+  requestedBy: string;
+  date: string;
+  status: string;
+  level: string;
+  chain: string[];
+  rejectionReason?: string;
+};
+
+const approvals: ApprovalItem[] = [
   { item: "Expense - Travel to Rampur", amount: 12500, requestedBy: "Operator Raj", date: "Today", status: "pending", level: "Level 1 (Accountant)", chain: ["Accountant", "NGO Admin"] },
   { item: "Expense - Office Supplies", amount: 4800, requestedBy: "Operator Meena", date: "Today", status: "pending", level: "Auto-approved", chain: ["System"] },
   { item: "Fund Transfer - Project Alpha", amount: 250000, requestedBy: "PM Sharma", date: "Yesterday", status: "approved", level: "Level 2 (Admin)", chain: ["Accountant", "NGO Admin", "Super Admin"] },
