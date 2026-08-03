@@ -58,6 +58,96 @@ export type Database = {
           },
         ]
       }
+      assets: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          condition: string
+          created_at: string
+          current_value: number
+          id: string
+          location: string | null
+          name: string
+          purchase_date: string
+          purchase_value: number
+          ref_code: string
+          status: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: string
+          condition?: string
+          created_at?: string
+          current_value?: number
+          id?: string
+          location?: string | null
+          name: string
+          purchase_date?: string
+          purchase_value?: number
+          ref_code: string
+          status?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          condition?: string
+          created_at?: string
+          current_value?: number
+          id?: string
+          location?: string | null
+          name?: string
+          purchase_date?: string
+          purchase_value?: number
+          ref_code?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      beneficiaries: {
+        Row: {
+          age: number | null
+          category: string
+          created_at: string
+          district: string | null
+          enrolled_on: string
+          gender: string | null
+          id: string
+          name: string
+          project: string | null
+          ref_code: string
+          status: string
+          village: string | null
+        }
+        Insert: {
+          age?: number | null
+          category: string
+          created_at?: string
+          district?: string | null
+          enrolled_on?: string
+          gender?: string | null
+          id?: string
+          name: string
+          project?: string | null
+          ref_code: string
+          status?: string
+          village?: string | null
+        }
+        Update: {
+          age?: number | null
+          category?: string
+          created_at?: string
+          district?: string | null
+          enrolled_on?: string
+          gender?: string | null
+          id?: string
+          name?: string
+          project?: string | null
+          ref_code?: string
+          status?: string
+          village?: string | null
+        }
+        Relationships: []
+      }
       brand_violations: {
         Row: {
           created_at: string
@@ -92,6 +182,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      documents: {
+        Row: {
+          category: string
+          created_at: string
+          expires_on: string | null
+          file_type: string
+          id: string
+          is_confidential: boolean
+          name: string
+          size_kb: number
+          uploaded_by: string | null
+          uploaded_on: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          expires_on?: string | null
+          file_type?: string
+          id?: string
+          is_confidential?: boolean
+          name: string
+          size_kb?: number
+          uploaded_by?: string | null
+          uploaded_on?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          expires_on?: string | null
+          file_type?: string
+          id?: string
+          is_confidential?: boolean
+          name?: string
+          size_kb?: number
+          uploaded_by?: string | null
+          uploaded_on?: string
+        }
+        Relationships: []
       }
       donations: {
         Row: {
@@ -256,6 +385,99 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          bill_attached: boolean
+          category: string
+          created_at: string
+          decision_reason: string | null
+          description: string
+          expense_date: string
+          id: string
+          project: string
+          ref_code: string
+          requested_by: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          bill_attached?: boolean
+          category: string
+          created_at?: string
+          decision_reason?: string | null
+          description: string
+          expense_date?: string
+          id?: string
+          project?: string
+          ref_code: string
+          requested_by: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bill_attached?: boolean
+          category?: string
+          created_at?: string
+          decision_reason?: string | null
+          description?: string
+          expense_date?: string
+          id?: string
+          project?: string
+          ref_code?: string
+          requested_by?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      grants: {
+        Row: {
+          amount: number
+          created_at: string
+          end_date: string | null
+          funder: string
+          id: string
+          ref_code: string
+          released: number
+          stage: string
+          start_date: string | null
+          status: string
+          title: string
+          utilization_pct: number
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          end_date?: string | null
+          funder: string
+          id?: string
+          ref_code: string
+          released?: number
+          stage?: string
+          start_date?: string | null
+          status?: string
+          title: string
+          utilization_pct?: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          end_date?: string | null
+          funder?: string
+          id?: string
+          ref_code?: string
+          released?: number
+          stage?: string
+          start_date?: string | null
+          status?: string
+          title?: string
+          utilization_pct?: number
+        }
+        Relationships: []
       }
       license_verification_logs: {
         Row: {
@@ -528,6 +750,54 @@ export type Database = {
           start_date?: string | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      volunteers: {
+        Row: {
+          created_at: string
+          department: string
+          email: string | null
+          hours_this_month: number
+          id: string
+          joined_on: string
+          location: string | null
+          name: string
+          phone: string | null
+          ref_code: string
+          role: string
+          staff_type: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          department: string
+          email?: string | null
+          hours_this_month?: number
+          id?: string
+          joined_on?: string
+          location?: string | null
+          name: string
+          phone?: string | null
+          ref_code: string
+          role: string
+          staff_type?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          department?: string
+          email?: string | null
+          hours_this_month?: number
+          id?: string
+          joined_on?: string
+          location?: string | null
+          name?: string
+          phone?: string | null
+          ref_code?: string
+          role?: string
+          staff_type?: string
+          status?: string
         }
         Relationships: []
       }
