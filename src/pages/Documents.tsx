@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { useTableData } from "@/hooks/useTableData";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
@@ -13,29 +15,31 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const documentData = [
-  { id: "DOC-001", name: "12A Registration Certificate", category: "Compliance", type: "PDF", size: "2.1 MB", uploadedBy: "NGO Admin", date: "2024-04-01", version: 3, access: "admin", linked: "Compliance" },
-  { id: "DOC-002", name: "80G Certificate - 2023-28", category: "Compliance", type: "PDF", size: "1.8 MB", uploadedBy: "NGO Admin", date: "2024-05-15", version: 2, access: "admin", linked: "Compliance" },
-  { id: "DOC-003", name: "Annual Report FY 2023-24", category: "Reports", type: "PDF", size: "12.4 MB", uploadedBy: "Accountant", date: "2024-07-20", version: 1, access: "all", linked: "Reports" },
-  { id: "DOC-004", name: "FCRA License Copy", category: "Compliance", type: "PDF", size: "890 KB", uploadedBy: "NGO Admin", date: "2024-03-10", version: 1, access: "admin", linked: "Compliance" },
-  { id: "DOC-005", name: "Board Meeting Minutes - Jan 2025", category: "Governance", type: "DOCX", size: "345 KB", uploadedBy: "Secretary", date: "2025-01-28", version: 1, access: "admin", linked: "Governance" },
-  { id: "DOC-006", name: "Project Proposal - Digital Literacy", category: "Projects", type: "PDF", size: "5.6 MB", uploadedBy: "PM Sharma", date: "2025-01-15", version: 2, access: "staff", linked: "Projects" },
-  { id: "DOC-007", name: "Donor Agreement - Tata Trust", category: "Grants", type: "PDF", size: "3.2 MB", uploadedBy: "NGO Admin", date: "2024-11-20", version: 1, access: "admin", linked: "Grants" },
-  { id: "DOC-008", name: "Staff Policy Handbook", category: "HR", type: "PDF", size: "4.8 MB", uploadedBy: "HR Manager", date: "2024-09-01", version: 4, access: "all", linked: "HR" },
-  { id: "DOC-009", name: "Expense Vouchers - Dec 2024", category: "Finance", type: "XLSX", size: "1.2 MB", uploadedBy: "Accountant", date: "2025-01-05", version: 1, access: "finance", linked: "Expenses" },
-  { id: "DOC-010", name: "Field Visit Photos - Rampur", category: "Media", type: "ZIP", size: "48.5 MB", uploadedBy: "Field Team", date: "2025-02-08", version: 1, access: "all", linked: "Projects" },
-];
+interface DocumentRow {
+  id: string;
+  name: string;
+  category: string;
+  file_type: string;
+  size_kb: number;
+  uploaded_by: string | null;
+  uploaded_on: string;
+  expires_on: string | null;
+  is_confidential: boolean;
+}
 
-const categories = [
-  { name: "Compliance", count: 3, icon: Shield, color: "text-coral" },
-  { name: "Reports", count: 2, icon: FileText, color: "text-primary" },
-  { name: "Projects", count: 2, icon: FolderOpen, color: "text-teal" },
-  { name: "Governance", count: 1, icon: Lock, color: "text-warning" },
-  { name: "Finance", count: 1, icon: FileSpreadsheet, color: "text-success" },
-  { name: "HR", count: 1, icon: File, color: "text-purple-400" },
-  { name: "Grants", count: 1, icon: File, color: "text-coral" },
-  { name: "Media", count: 1, icon: Image, color: "text-teal" },
-];
+const categoryIcon: Record<string, { icon: typeof Shield; color: string }> = {
+  Compliance: { icon: Shield, color: "text-coral" },
+  Reports: { icon: FileText, color: "text-primary" },
+  Programs: { icon: FolderOpen, color: "text-teal" },
+  Governance: { icon: Lock, color: "text-warning" },
+  Finance: { icon: FileSpreadsheet, color: "text-success" },
+  Legal: { icon: File, color: "text-purple-400" },
+  Grants: { icon: File, color: "text-coral" },
+  Media: { icon: Image, color: "text-teal" },
+};
+
+const formatSize = (kb: number) =>
+  kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`;
 
 const getFileIcon = (type: string) => {
   switch (type) {
@@ -50,19 +54,35 @@ const getFileIcon = (type: string) => {
 const Documents = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const {
+    data: documentData,
+    loading,
+    error: loadError,
+    refetch,
+  } = useTableData<DocumentRow>("documents", { orderBy: "uploaded_on" });
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const load = () => {
-    setLoading(true);
-    setLoadError(null);
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
-  };
+  const load = () => void refetch();
 
-  useEffect(() => load(), []);
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    documentData.forEach(d => counts.set(d.category, (counts.get(d.category) ?? 0) + 1));
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({
+        name,
+        count,
+        icon: categoryIcon[name]?.icon ?? File,
+        color: categoryIcon[name]?.color ?? "text-muted-foreground",
+      }));
+  }, [documentData]);
+
+  const totalKb = documentData.reduce((s, d) => s + d.size_kb, 0);
+  const confidentialCount = documentData.filter(d => d.is_confidential).length;
+  const expiringCount = documentData.filter(
+    d => d.expires_on && new Date(d.expires_on).getTime() - Date.now() < 1000 * 60 * 60 * 24 * 180
+  ).length;
 
   const MAX_MB = 50;
   const handleUpload = async (file?: File) => {
@@ -74,10 +94,20 @@ const Documents = () => {
       return;
     }
     await notify.action(
-      () => new Promise((resolve) => setTimeout(resolve, 900)),
+      async () => {
+        const { error } = await supabase.from("documents").insert({
+          name: file.name,
+          category: filterCategory === "all" ? "Reports" : filterCategory,
+          file_type: (file.name.split(".").pop() ?? "FILE").toUpperCase(),
+          size_kb: Math.max(1, Math.round(file.size / 1024)),
+          uploaded_by: "Current user",
+        });
+        if (error) throw new Error(error.message);
+        await refetch();
+      },
       {
         loading: `Uploading ${file.name}…`,
-        success: `${file.name} uploaded and versioned`,
+        success: `${file.name} uploaded to the vault`,
         error: `Could not upload ${file.name}`,
       },
     );
@@ -85,7 +115,7 @@ const Documents = () => {
 
   const filtered = documentData.filter(d => {
     const matchesSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.id.toLowerCase().includes(searchQuery.toLowerCase());
+      d.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === "all" || d.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
@@ -101,10 +131,10 @@ const Documents = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard3D title="Total Documents" value={documentData.length * 12} icon={<FileText className="w-6 h-6 text-white" />} iconBg="primary" change="Across all categories" trend="neutral" />
+              <StatCard3D title="Total Documents" value={documentData.length} icon={<FileText className="w-6 h-6 text-white" />} iconBg="primary" change="Across all categories" trend="neutral" />
               <StatCard3D title="Categories" value={categories.length} icon={<FolderOpen className="w-6 h-6 text-white" />} iconBg="teal" change="Organized folders" trend="neutral" />
-              <StatCard3D title="Total Size" value={82} suffix=" MB" icon={<Upload className="w-6 h-6 text-white" />} iconBg="coral" change="Storage used" trend="up" />
-              <StatCard3D title="Versions Tracked" value={16} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change="With full history" trend="neutral" />
+              <StatCard3D title="Total Size" value={Math.round(totalKb / 1024)} suffix=" MB" icon={<Upload className="w-6 h-6 text-white" />} iconBg="coral" change="Storage used" trend="up" />
+              <StatCard3D title="Expiring Soon" value={expiringCount} icon={<Clock className="w-6 h-6 text-white" />} iconBg="warning" change="Within 180 days" trend={expiringCount ? "down" : "neutral"} />
             </div>
           )}
         </DashboardSection>
@@ -167,22 +197,22 @@ const Documents = () => {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>File</th><th>Name</th><th>Category</th><th>Size</th><th>Uploaded By</th><th>Date</th><th>Ver</th><th>Access</th><th>Actions</th>
+                    <th>File</th><th>Name</th><th>Category</th><th>Size</th><th>Uploaded By</th><th>Date</th><th>Expires</th><th>Access</th><th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map(d => (
                     <tr key={d.id}>
-                      <td>{getFileIcon(d.type)}</td>
+                      <td>{getFileIcon(d.file_type)}</td>
                       <td className="font-medium text-foreground max-w-[220px] truncate">{d.name}</td>
                       <td><span className="badge-primary">{d.category}</span></td>
-                      <td className="text-muted-foreground text-xs">{d.size}</td>
-                      <td className="text-muted-foreground text-xs">{d.uploadedBy}</td>
-                      <td className="text-muted-foreground text-xs">{new Date(d.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "2-digit" })}</td>
-                      <td className="text-center"><span className="px-1.5 py-0.5 rounded bg-secondary text-xs text-muted-foreground">v{d.version}</span></td>
+                      <td className="text-muted-foreground text-xs">{formatSize(d.size_kb)}</td>
+                      <td className="text-muted-foreground text-xs">{d.uploaded_by ?? "—"}</td>
+                      <td className="text-muted-foreground text-xs">{new Date(d.uploaded_on).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "2-digit" })}</td>
+                      <td className="text-muted-foreground text-xs">{d.expires_on ? new Date(d.expires_on).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "2-digit" }) : "—"}</td>
                       <td>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${d.access === "admin" ? "bg-coral/20 text-coral" : d.access === "finance" ? "bg-warning/20 text-warning" : "bg-success/20 text-emerald-400"}`}>
-                          {d.access}
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${d.is_confidential ? "bg-coral/20 text-coral" : "bg-success/20 text-emerald-400"}`}>
+                          {d.is_confidential ? "restricted" : "all"}
                         </span>
                       </td>
                       <td>
@@ -220,9 +250,9 @@ const Documents = () => {
           <DeepResearchView title="Document Analytics" subtitle="Usage patterns and storage trends" onExport={() => toast.success("Document analytics exported")}>
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: "Most Accessed", value: "Annual Report" },
-                { label: "Downloads This Month", value: "47" },
-                { label: "Avg Version Count", value: "2.3" },
+                { label: "Restricted Documents", value: `${confidentialCount}` },
+                { label: "Expiring in 180 Days", value: `${expiringCount}` },
+                { label: "Avg File Size", value: documentData.length ? formatSize(Math.round(totalKb / documentData.length)) : "—" },
               ].map(item => (
                 <div key={item.label} className="p-4 rounded-lg bg-secondary/50 text-center">
                   <p className="text-2xl font-bold text-foreground">{item.value}</p>

@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { useTableData } from "@/hooks/useTableData";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
@@ -17,68 +19,81 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const expenseData = [
-  { id: "EXP-001", description: "Travel to Rampur field visit", category: "Travel", project: "Rural Education", amount: 12500, requestedBy: "Raj Kumar", date: "2025-02-10", status: "pending", billAttached: true },
-  { id: "EXP-002", description: "Office supplies - Stationery", category: "Admin", project: "General", amount: 4800, requestedBy: "Meena Sharma", date: "2025-02-09", status: "pending", billAttached: true },
-  { id: "EXP-003", description: "Workshop venue booking", category: "Program", project: "Women Empowerment", amount: 35000, requestedBy: "Priya Verma", date: "2025-02-08", status: "approved", billAttached: true },
-  { id: "EXP-004", description: "Printing - Annual Report 500 copies", category: "Communication", project: "General", amount: 28000, requestedBy: "Amit Singh", date: "2025-02-07", status: "approved", billAttached: true },
-  { id: "EXP-005", description: "Laptop for field coordinator", category: "IT Equipment", project: "Rural Education", amount: 52000, requestedBy: "PM Sharma", date: "2025-02-06", status: "rejected", billAttached: false },
-  { id: "EXP-006", description: "Community health camp supplies", category: "Program", project: "Health Initiative", amount: 18500, requestedBy: "Dr. Gupta", date: "2025-02-05", status: "approved", billAttached: true },
-  { id: "EXP-007", description: "Vehicle fuel - January", category: "Transport", project: "General", amount: 8200, requestedBy: "Driver Ramu", date: "2025-02-04", status: "approved", billAttached: true },
-  { id: "EXP-008", description: "Internet and phone bills", category: "Utilities", project: "General", amount: 6500, requestedBy: "Admin Team", date: "2025-02-03", status: "approved", billAttached: true },
-];
-
-const categoryBreakdown = [
-  { category: "Program", amount: 53500, percentage: 32, color: "bg-primary" },
-  { category: "Travel", amount: 20700, percentage: 12, color: "bg-teal" },
-  { category: "Admin", amount: 11300, percentage: 7, color: "bg-coral" },
-  { category: "IT Equipment", amount: 52000, percentage: 31, color: "bg-warning" },
-  { category: "Utilities", amount: 14700, percentage: 9, color: "bg-success" },
-  { category: "Communication", amount: 28000, percentage: 17, color: "bg-purple-400" },
-];
+interface ExpenseRow {
+  id: string;
+  ref_code: string;
+  description: string;
+  category: string;
+  project: string;
+  amount: number;
+  requested_by: string;
+  expense_date: string;
+  status: string;
+  bill_attached: boolean;
+}
 
 const Expenses = () => {
   const { location } = useRules();
   const currencySymbol = location.country?.currency.symbol || "₹";
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [rows, setRows] = useState(expenseData);
+  const {
+    data: rows,
+    setData: setRows,
+    loading,
+    error: loadError,
+    refetch,
+  } = useTableData<ExpenseRow>("expenses", { orderBy: "expense_date" });
   const [confirm, setConfirm] = useState<
-    { id: string; amount: number; mode: "approve" | "reject" } | null
+    { row: ExpenseRow; mode: "approve" | "reject" } | null
   >(null);
 
-  const load = () => {
-    setLoading(true);
-    setLoadError(null);
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
-  };
-
-  useEffect(() => load(), []);
+  const load = () => void refetch();
 
   const filtered = rows.filter(e => {
     const matchesSearch = e.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      e.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.ref_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
       e.project.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === "all" || e.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
-  const totalExpenses = rows.reduce((s, e) => s + e.amount, 0);
-  const approved = rows.filter(e => e.status === "approved").reduce((s, e) => s + e.amount, 0);
-  const pending = rows.filter(e => e.status === "pending").reduce((s, e) => s + e.amount, 0);
+  const totalExpenses = rows.reduce((s, e) => s + Number(e.amount), 0);
+  const approved = rows.filter(e => e.status === "approved").reduce((s, e) => s + Number(e.amount), 0);
+  const pending = rows.filter(e => e.status === "pending").reduce((s, e) => s + Number(e.amount), 0);
   const hasFilters = searchQuery.trim() !== "" || filterStatus !== "all";
 
-  const applyDecision = (id: string, status: "approved" | "rejected", reason: string) => {
-    setRows(prev => prev.map(r => (r.id === id ? { ...r, status } : r)));
+  const categoryBreakdown = useMemo(() => {
+    const palette = ["bg-primary", "bg-teal", "bg-coral", "bg-warning", "bg-success", "bg-purple-400"];
+    const totals = new Map<string, number>();
+    rows.forEach(e => totals.set(e.category, (totals.get(e.category) ?? 0) + Number(e.amount)));
+    const sum = [...totals.values()].reduce((s, v) => s + v, 0) || 1;
+    return [...totals.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([category, amount], i) => ({
+        category,
+        amount,
+        percentage: Math.round((amount / sum) * 100),
+        color: palette[i % palette.length],
+      }));
+  }, [rows]);
+
+  const applyDecision = async (row: ExpenseRow, status: "approved" | "rejected", reason: string) => {
+    const { error } = await supabase
+      .from("expenses")
+      .update({ status, decision_reason: reason || null })
+      .eq("id", row.id);
+    if (error) {
+      notify.error("Could not save decision", { description: error.message });
+      return;
+    }
+    setRows(prev => prev.map(r => (r.id === row.id ? { ...r, status } : r)));
     if (status === "approved") {
-      notify.success(`${id} approved`, {
+      notify.success(`${row.ref_code} approved`, {
         description: "The expense is locked and recorded in the audit trail.",
       });
     } else {
-      notify.warning(`${id} rejected`, { description: `Reason logged: ${reason}` });
+      notify.warning(`${row.ref_code} rejected`, { description: `Reason logged: ${reason}` });
     }
   };
 
@@ -162,14 +177,14 @@ const Expenses = () => {
                 <tbody>
                   {filtered.map(e => (
                     <tr key={e.id}>
-                      <td className="font-mono text-xs text-primary">{e.id}</td>
+                      <td className="font-mono text-xs text-primary">{e.ref_code}</td>
                       <td className="font-medium text-foreground max-w-[200px] truncate">{e.description}</td>
                       <td><span className="badge-primary">{e.category}</span></td>
                       <td className="text-muted-foreground text-xs">{e.project}</td>
-                      <td className="font-semibold text-foreground">{currencySymbol}{e.amount.toLocaleString()}</td>
-                      <td className="text-muted-foreground text-xs">{e.requestedBy}</td>
-                      <td className="text-muted-foreground text-xs">{new Date(e.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</td>
-                      <td>{e.billAttached ? <Upload className="w-4 h-4 text-success" /> : <AlertTriangle className="w-4 h-4 text-warning" />}</td>
+                      <td className="font-semibold text-foreground">{currencySymbol}{Number(e.amount).toLocaleString()}</td>
+                      <td className="text-muted-foreground text-xs">{e.requested_by}</td>
+                      <td className="text-muted-foreground text-xs">{new Date(e.expense_date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</td>
+                      <td>{e.bill_attached ? <Upload className="w-4 h-4 text-success" aria-label="Bill attached" /> : <AlertTriangle className="w-4 h-4 text-warning" aria-label="Bill missing" />}</td>
                       <td>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${e.status === "approved" ? "bg-success/20 text-emerald-400" : e.status === "rejected" ? "bg-coral/20 text-coral" : "bg-warning/20 text-warning"}`}>
                           {e.status}
@@ -178,8 +193,8 @@ const Expenses = () => {
                       <td>
                         {e.status === "pending" && (
                           <div className="flex gap-1">
-                            <button onClick={() => setConfirm({ id: e.id, amount: e.amount, mode: "approve" })} aria-label={`Approve expense ${e.id}`} className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors"><CheckCircle className="w-3.5 h-3.5 text-success" aria-hidden="true" /></button>
-                            <button onClick={() => setConfirm({ id: e.id, amount: e.amount, mode: "reject" })} aria-label={`Reject expense ${e.id}`} className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors"><XCircle className="w-3.5 h-3.5 text-coral" aria-hidden="true" /></button>
+                            <button onClick={() => setConfirm({ row: e, mode: "approve" })} aria-label={`Approve expense ${e.ref_code}`} className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 transition-colors"><CheckCircle className="w-3.5 h-3.5 text-success" aria-hidden="true" /></button>
+                            <button onClick={() => setConfirm({ row: e, mode: "reject" })} aria-label={`Reject expense ${e.ref_code}`} className="p-1.5 rounded-lg bg-coral/20 hover:bg-coral/30 transition-colors"><XCircle className="w-3.5 h-3.5 text-coral" aria-hidden="true" /></button>
                           </div>
                         )}
                       </td>
@@ -234,12 +249,12 @@ const Expenses = () => {
         actionLabel="expense approvals"
         title={
           confirm?.mode === "reject"
-            ? `Reject expense ${confirm?.id}?`
-            : `Approve expense ${confirm?.id}?`
+            ? `Reject expense ${confirm?.row.ref_code}?`
+            : `Approve expense ${confirm?.row.ref_code}?`
         }
         description={
           confirm
-            ? `${currencySymbol}${confirm.amount.toLocaleString()} · This decision is recorded against your user in the audit trail.`
+            ? `${currencySymbol}${Number(confirm.row.amount).toLocaleString()} · This decision is recorded against your user in the audit trail.`
             : ""
         }
         impact={
@@ -252,7 +267,7 @@ const Expenses = () => {
         confirmLabel={confirm?.mode === "reject" ? "Reject expense" : "Approve expense"}
         onConfirm={(reason) =>
           confirm &&
-          applyDecision(confirm.id, confirm.mode === "reject" ? "rejected" : "approved", reason)
+          void applyDecision(confirm.row, confirm.mode === "reject" ? "rejected" : "approved", reason)
         }
       />
     </MainLayout>

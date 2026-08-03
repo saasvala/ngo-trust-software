@@ -1,126 +1,149 @@
-import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardSection } from "@/components/dashboard/layers/DashboardSection";
 import { StatCard3D } from "@/components/dashboard/layers/StatCard3D";
 import { DeepResearchView } from "@/components/dashboard/layers/DeepResearchView";
-import { StatCardSkeleton } from "@/components/ui/loading";
-import { Landmark, FileText, Clock, CheckCircle, TrendingUp, Activity, Target, ArrowRight } from "lucide-react";
-const grants = [
-  { name: "UNICEF Water & Sanitation", amount: 5000000, status: "active", utilization: 64, period: "2024-2026", stage: "Milestone Released" },
-  { name: "State Education Grant", amount: 1200000, status: "active", utilization: 82, period: "2025-2026", stage: "Funded" },
-  { name: "CSR - Tata Trust", amount: 2500000, status: "reporting", utilization: 95, period: "2024-2025", stage: "Completed" },
-  { name: "USAID Health Program", amount: 8000000, status: "proposal", utilization: 0, period: "2026-2028", stage: "Applied" },
-  { name: "Ford Foundation - Women's Empowerment", amount: 3500000, status: "active", utilization: 45, period: "2025-2027", stage: "Approved" },
-];
+import { StatCardSkeleton, EmptyState } from "@/components/ui/loading";
+import { ErrorState } from "@/components/common/StateBlocks";
+import { useTableData } from "@/hooks/useTableData";
+import { useRules } from "@/contexts/RuleContext";
+import { Landmark, FileText, TrendingUp, Activity, Target } from "lucide-react";
+import { toast } from "sonner";
 
-const milestones = [
-  { grant: "UNICEF Water & Sanitation", milestone: "M3: 500 wells completed", due: "Mar 31, 2025", release: "₹12.5L", status: "pending" },
-  { grant: "UNICEF Water & Sanitation", milestone: "M2: 300 wells completed", due: "Dec 31, 2024", release: "₹12.5L", status: "released" },
-  { grant: "State Education Grant", milestone: "M2: 200 classrooms operational", due: "Jun 30, 2025", release: "₹4L", status: "upcoming" },
-  { grant: "Ford Foundation", milestone: "M1: 50 SHGs formed", due: "May 15, 2025", release: "₹8.75L", status: "pending" },
-];
+interface GrantRow {
+  id: string;
+  ref_code: string;
+  title: string;
+  funder: string;
+  amount: number;
+  released: number;
+  stage: string;
+  start_date: string | null;
+  end_date: string | null;
+  utilization_pct: number;
+  status: string;
+}
 
-const stages = ["Applied", "Approved", "Funded", "Milestone Released", "Completed"];
+const stages = ["application", "approval", "agreement", "implementation", "reporting", "closure"];
+const stageLabel = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 const Grants = () => {
+  const { location } = useRules();
+  const symbol = location.country?.currency.symbol || "₹";
+  const { data: grants, loading, error, refetch } = useTableData<GrantRow>("grants", {
+    orderBy: "start_date",
+  });
+
+  const lakh = (n: number) => `${symbol}${(n / 100000).toFixed(1)}L`;
+  const active = grants.filter(g => g.status === "active");
+  const totalValue = grants.reduce((s, g) => s + Number(g.amount), 0);
+  const totalReleased = grants.reduce((s, g) => s + Number(g.released), 0);
+  const ucPending = grants.filter(g => g.stage === "reporting" || g.stage === "closure").length;
+  const pipeline = grants.filter(g => g.stage === "application" || g.stage === "approval").length;
+  const avgUtil = grants.length
+    ? Math.round(grants.reduce((s, g) => s + g.utilization_pct, 0) / grants.length)
+    : 0;
+  const closed = grants.filter(g => g.status === "closed").length;
+
+  const period = (g: GrantRow) =>
+    [g.start_date, g.end_date].filter(Boolean).map(d => new Date(d as string).getFullYear()).join("–") || "Dates TBC";
+
   return (
     <MainLayout title="Grant Lifecycle" subtitle="Grant tracking from proposal to utilization certificate with milestone-based releases">
       <div className="space-y-8">
         <DashboardSection level="macro" title="Grant Portfolio" subtitle="Active grants and fund allocation" icon={<Landmark className="w-6 h-6 text-white" />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard3D title="Active Grants" value={6} icon={<Landmark className="w-6 h-6 text-white" />} iconBg="primary" change="3 in reporting phase" trend="neutral" />
-            <StatCard3D title="Total Grant Value" value={20200000} prefix="₹" icon={<TrendingUp className="w-6 h-6 text-white" />} iconBg="teal" change="This FY" trend="up" />
-            <StatCard3D title="UC Pending" value={2} icon={<FileText className="w-6 h-6 text-white" />} iconBg="warning" change="Due this quarter" trend="neutral" />
-            <StatCard3D title="Milestones Due" value={3} icon={<Target className="w-6 h-6 text-white" />} iconBg="coral" change="Next 90 days" trend="neutral" />
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton /><StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard3D title="Active Grants" value={active.length} icon={<Landmark className="w-6 h-6 text-white" />} iconBg="primary" change={`${closed} closed`} trend="neutral" />
+              <StatCard3D title="Total Grant Value" value={totalValue} prefix={symbol} icon={<TrendingUp className="w-6 h-6 text-white" />} iconBg="teal" change={`${lakh(totalReleased)} released`} trend="up" />
+              <StatCard3D title="UC Pending" value={ucPending} icon={<FileText className="w-6 h-6 text-white" />} iconBg="warning" change="Reporting or closure stage" trend="neutral" />
+              <StatCard3D title="In Pipeline" value={pipeline} icon={<Target className="w-6 h-6 text-white" />} iconBg="coral" change="Application / approval" trend="neutral" />
+            </div>
+          )}
         </DashboardSection>
 
         <DashboardSection level="micro" title="Grant Tracker" subtitle="Lifecycle stage and utilization per grant" icon={<Activity className="w-5 h-5 text-primary" />} defaultExpanded={true}>
-          <div className="space-y-4">
-            {grants.map((g) => {
-              const stageIndex = stages.indexOf(g.stage);
-              return (
-                <div key={g.name} className="p-4 rounded-xl bg-secondary/50">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <p className="font-medium text-foreground">{g.name}</p>
-                      <p className="text-xs text-muted-foreground">{g.period} · ₹{(g.amount / 100000).toFixed(0)}L</p>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${g.status === 'active' ? 'bg-success/20 text-emerald-400' : g.status === 'reporting' ? 'bg-warning/20 text-warning' : 'bg-primary/20 text-primary'}`}>
-                      {g.stage}
-                    </span>
-                  </div>
-                  {/* Stage pipeline */}
-                  <div className="flex items-center gap-1 mt-2 mb-2">
-                    {stages.map((s, i) => (
-                      <div key={s} className="flex items-center gap-1">
-                        <div className={`w-2 h-2 rounded-full ${i <= stageIndex ? 'bg-primary' : 'bg-muted'}`} />
-                        {i < stages.length - 1 && <div className={`w-4 h-0.5 ${i < stageIndex ? 'bg-primary' : 'bg-muted'}`} />}
+          {loading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-24 rounded-xl bg-secondary/50 animate-pulse" />
+              ))}
+            </div>
+          ) : error ? (
+            <ErrorState description={error} onRetry={() => void refetch()} />
+          ) : grants.length === 0 ? (
+            <EmptyState icon={<Landmark className="w-6 h-6 text-muted-foreground" />} title="No grants recorded" description="Add a grant to track it from application through to closure." />
+          ) : (
+            <div className="space-y-4">
+              {grants.map(g => {
+                const stageIndex = stages.indexOf(g.stage);
+                return (
+                  <div key={g.id} className="p-4 rounded-xl bg-secondary/50">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground truncate">{g.title}</p>
+                        <p className="text-xs text-muted-foreground">{g.funder} · {period(g)} · {lakh(Number(g.amount))}</p>
                       </div>
-                    ))}
-                    <span className="text-xs text-muted-foreground ml-2">{stageIndex + 1}/{stages.length}</span>
-                  </div>
-                  {g.utilization > 0 && (
+                      <span className={`self-start px-2 py-1 rounded-full text-xs font-medium ${g.status === "active" ? "bg-success/20 text-emerald-400" : g.status === "pending" ? "bg-warning/20 text-warning" : "bg-primary/20 text-primary"}`}>
+                        {stageLabel(g.stage)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-2 mb-2 flex-wrap">
+                      {stages.map((s, i) => (
+                        <div key={s} className="flex items-center gap-1">
+                          <div className={`w-2 h-2 rounded-full ${i <= stageIndex ? "bg-primary" : "bg-muted"}`} />
+                          {i < stages.length - 1 && <div className={`w-4 h-0.5 ${i < stageIndex ? "bg-primary" : "bg-muted"}`} />}
+                        </div>
+                      ))}
+                      <span className="text-xs text-muted-foreground ml-2">{stageIndex + 1}/{stages.length}</span>
+                    </div>
                     <div className="mt-2">
                       <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                        <span>Utilization</span><span>{g.utilization}%</span>
+                        <span>Utilization · {lakh(Number(g.released))} released</span><span>{g.utilization_pct}%</span>
                       </div>
                       <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-primary to-teal rounded-full" style={{ width: `${g.utilization}%` }} />
+                        <div className="h-full bg-gradient-to-r from-primary to-teal rounded-full" style={{ width: `${g.utilization_pct}%` }} />
                       </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </DashboardSection>
 
-        <DashboardSection level="nano" title="Milestone Tracker" subtitle="Milestone-based fund release schedule" icon={<Target className="w-5 h-5 text-teal" />} defaultExpanded={false}>
-          <div className="space-y-3">
-            {milestones.map((m, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
-                <div>
-                  <p className="text-sm font-medium text-foreground">{m.milestone}</p>
-                  <p className="text-xs text-muted-foreground">{m.grant} · Due: {m.due} · Release: {m.release}</p>
+        <DashboardSection level="nano" title="Fund Release Tracker" subtitle="Released versus committed funds per grant" icon={<Target className="w-5 h-5 text-teal" />} defaultExpanded={false}>
+          {grants.length === 0 ? (
+            <EmptyState icon={<Target className="w-6 h-6 text-muted-foreground" />} title="No releases yet" description="Release data appears once grants are recorded." />
+          ) : (
+            <div className="space-y-3">
+              {grants.map(g => (
+                <div key={g.id} className="flex items-center justify-between gap-3 p-3 rounded-lg bg-secondary/30">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{g.title}</p>
+                    <p className="text-xs text-muted-foreground">{g.ref_code} · {lakh(Number(g.released))} of {lakh(Number(g.amount))}</p>
+                  </div>
+                  <span className="text-xs font-medium text-primary shrink-0">
+                    {Math.round((Number(g.released) / Math.max(Number(g.amount), 1)) * 100)}% released
+                  </span>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${m.status === 'released' ? 'bg-success/20 text-emerald-400' : m.status === 'pending' ? 'bg-warning/20 text-warning' : 'bg-secondary text-muted-foreground'}`}>
-                  {m.status}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </DashboardSection>
 
-        <DashboardSection level="nano" title="UC Management" subtitle="Utilization certificate tracking" icon={<FileText className="w-5 h-5 text-teal" />} defaultExpanded={false}>
-          <div className="space-y-3">
-            {[
-              { grant: "UNICEF Water & Sanitation", uc: "UC-2025-Q1", due: "Apr 15, 2025", status: "draft" },
-              { grant: "State Education Grant", uc: "UC-2025-Q4", due: "Mar 31, 2025", status: "submitted" },
-              { grant: "CSR - Tata Trust", uc: "UC-2024-Final", due: "Jun 30, 2025", status: "approved" },
-            ].map((u, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
-                <div>
-                  <p className="text-sm font-medium text-foreground">{u.uc}</p>
-                  <p className="text-xs text-muted-foreground">{u.grant} · Due: {u.due}</p>
-                </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${u.status === 'approved' ? 'bg-success/20 text-emerald-400' : u.status === 'submitted' ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground'}`}>
-                  {u.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </DashboardSection>
-
-        <DashboardSection level="deep" title="Grant Intelligence" subtitle="Multi-year grant performance and forecasting" icon={<Landmark className="w-5 h-5 text-coral" />} defaultExpanded={false}>
-          <DeepResearchView title="Grant Analytics" subtitle="Lifecycle performance and success metrics" onExport={() => {}}>
-            <div className="grid grid-cols-4 gap-4">
+        <DashboardSection level="deep" title="Grant Intelligence" subtitle="Portfolio performance across the grant lifecycle" icon={<Landmark className="w-5 h-5 text-coral" />} defaultExpanded={false}>
+          <DeepResearchView title="Grant Analytics" subtitle="Lifecycle performance and success metrics" onExport={() => toast.success("Grant analytics exported")}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Total Grants (5yr)", value: "₹84.5Cr" },
-                { label: "Avg Utilization", value: "81.2%" },
-                { label: "Success Rate", value: "94%" },
-                { label: "Milestone Hit Rate", value: "89%" },
-              ].map((item) => (
+                { label: "Portfolio Value", value: lakh(totalValue) },
+                { label: "Funds Released", value: lakh(totalReleased) },
+                { label: "Avg Utilization", value: `${avgUtil}%` },
+                { label: "Grants Closed", value: `${closed}` },
+              ].map(item => (
                 <div key={item.label} className="p-4 rounded-lg bg-secondary/50 text-center">
                   <p className="text-2xl font-bold text-foreground">{item.value}</p>
                   <p className="text-xs text-muted-foreground">{item.label}</p>
